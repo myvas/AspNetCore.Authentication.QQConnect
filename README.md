@@ -1,5 +1,5 @@
 # AspNetCore.Authentication.QQConnect
-An ASP.NET Core authentication middleware: QQConnect for https://connect.qq.com 
+An ASP.NET Core authentication middleware: QQConnect for https://connect.qq.com/. (腾讯QQ互联/QQ登录）
 
 腾讯QQ登录：用户通过点击“QQ登录”图标按钮，或使用手机QQ扫码登入网站。
 
