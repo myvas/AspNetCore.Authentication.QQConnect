@@ -10,7 +10,7 @@
     <AssemblyName>Myvas.AspNetCore.Authentication.QQConnect</AssemblyName>
     <RootNamespace>Myvas.AspNetCore.Authentication.QQConnect</RootNamespace>
     <PackageId>AspNetCore.Authentication.QQConnect</PackageId>
-    <Product>AspNetCore.Authentication.QQConnect</Product>
+    <Product>AspNetCore.Authentication</Product>
   </PropertyGroup>
 
   <ItemGroup>

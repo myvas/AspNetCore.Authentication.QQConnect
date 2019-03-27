@@ -1,19 +1,26 @@
 # AspNetCore.Authentication.QQConnect
-An ASP.NET Core authentication middleware: QQConnect for https://connect.qq.com/. (腾讯QQ互联/QQ登录）
+An ASP.NET Core authentication middleware: QQConnect for https://connect.qq.com (腾讯QQ互联/QQ登录）
 
-腾讯QQ登录：用户通过点击“QQ登录”图标按钮，或使用手机QQ扫码登入网站。
+腾讯QQ互联/QQ登录：用户通过点击“QQ登录”图标按钮，或使用手机QQ扫码登入网站。
 
 * nuget: https://www.nuget.org/packages/Myvas.AspNetCore.Authentication.QQConnect
 * github: https://github.com/myvas/AspNetCore.Authentication.QQConnect
 
 # Brothers and sisters
 ## AspNetCore.Authentication.WeixinOpen
-An ASP.NET Core authentication middleware: WeixinOpen for https://open.weixin.qq.com
+An ASP.NET Core authentication middleware: WeixinOpen for https://open.weixin.qq.com (微信开放平台/微信扫码登录)
+
+
+微信开放平台/微信扫码登录：须open.weixin.qq.com账号网站应用接入，用户使用微信扫码并确认后登入网站。
+
 * nuget: https://www.nuget.org/packages/AspNetCore.Authentication.WeixinOpen
 * github: https://github.com/myvas/AspNetCore.Authentication.WeixinOpen
 
 ## AspNetCore.Authentication.WeixinAuth
-An ASP.NET Core authentication middleware: WeixinAuth for https://mp.weixin.qq.com
+An ASP.NET Core authentication middleware: WeixinAuth for https://mp.weixin.qq.com （微信公众平台/微信网页授权登录）
+
+微信公众平台/微信网页授权登录，须mp.weixin.qq.com账号，微信内置浏览器用户访问网站时自动登入网站。
+
 * nuget: https://www.nuget.org/packages/AspNetCore.Authentication.WeixinAuth
 * github: https://github.com/myvas/AspNetCore.Authentication.WeixinAuth
 
@@ -54,7 +61,8 @@ services.AddAuthentication()
     app.UseAuthentication();
 ```
 
-### Release
-* Current Version: 2.1.505 (Based on .NET Core 2.1)
+### Dev
+* .NET Core SDK 2.1.505
+
 
 

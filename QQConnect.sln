@@ -16,9 +16,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "_", "_", "{E9754587-13F5-4E
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{73FCFCF4-3A1C-4D4D-939A-9CABDC2341DC}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetCore.Authentication.QQConnect", "src\QQConnect\AspNetCore.Authentication.QQConnect.csproj", "{1E918763-5FDE-44AA-9634-6013987226E7}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "QQConnect", "src\QQConnect\QQConnect.csproj", "{1E918763-5FDE-44AA-9634-6013987226E7}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AspNetCore.Authentication.QQConnect.UnitTest", "test\QQConnect.UnitTest\AspNetCore.Authentication.QQConnect.UnitTest.csproj", "{DFAD9AAD-0802-406B-84C5-04F0FCFA6381}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "QQConnect.UnitTest", "test\QQConnect.UnitTest\QQConnect.UnitTest.csproj", "{DFAD9AAD-0802-406B-84C5-04F0FCFA6381}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
