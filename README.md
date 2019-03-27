@@ -27,7 +27,7 @@ https://demo.auth.myvas.com
 - 开发者注册: https://connect.qq.com
 - 应用管理: https://connect.qq.com/manage.html
 
-创建应用（网站应用，移动应用），并指定网站回调地址（例如：https://auth.myvas.com/qq)，获取AppId和AppKey
+创建应用（网站应用，移动应用），并指定网站回调地址（例如：https://auth.myvas.com/qq )，记下AppId和AppKey
 
 ### ConfigureServices
 ```csharp
@@ -38,7 +38,7 @@ services.AddAuthentication()
         options.AppId = Configuration["QQConnect:AppId"];
         options.AppKey = Configuration["QQConnect:AppKey"];
 
-        options.CallbackPath = "/signin-qqconnect"; //默认值
+        options.CallbackPath = "/signin-qqconnect"; //默认
 
         QQConnectScopes.TryAdd(options.Scope,
             QQConnectScopes.get_user_info,
