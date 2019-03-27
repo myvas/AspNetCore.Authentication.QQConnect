@@ -19,9 +19,7 @@ An ASP.NET Core authentication middleware: WeixinAuth for https://mp.weixin.qq.c
 
 ## Demo Online
 * github: https://github.com/myvas/AspNetCore.Authentication.Demo
-
-https://demo.auth.myvas.com
-
+* demo: https://demo.auth.myvas.com
 ![alt QrCode](http://mmbiz.qpic.cn/mmbiz_jpg/lPe5drS9euRQR1eCK5cGXaibHYL6vBR4pGLB34ju2hXCiaMQiayOU8w5GMfEH7WZsVNTnhLTpnzAC9xfdWuTT89OA/0)
 
 ## How to Use
