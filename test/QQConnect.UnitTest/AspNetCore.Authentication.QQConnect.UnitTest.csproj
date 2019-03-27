@@ -17,7 +17,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\WeixinAuth\WeixinAuth.csproj" />
+    <ProjectReference Include="..\..\src\QQConnect\AspNetCore.Authentication.QQConnect.csproj" />
   </ItemGroup>
 
 </Project>
