@@ -31,14 +31,11 @@ An ASP.NET Core authentication middleware: WeixinAuth for https://mp.weixin.qq.c
     app.UseAuthentication();
 ```
 
-## 1.QQConnect
-### 腾讯QQ互联平台
-- 开发者注册: https://connect.qq.com
-- 应用管理: https://connect.qq.com/manage.html
+## ConfigureServices
+1.QQConnect: 腾讯QQ互联平台(https://connect.qq.com)
+创建应用（网站应用，移动应用），并指定网站回调地址（例如：https://www.myvas.com/qqlogin )，记下AppId和AppKey。
 
-创建应用（网站应用，移动应用），并指定网站回调地址（例如：https://www.myvas.com/qqlogin )，记下AppId和AppKey
 
-### ConfigureServices
 ```csharp
 services.AddAuthentication()
     .AddQQConnect(options => 
@@ -56,14 +53,10 @@ services.AddAuthentication()
     };
 ```
 
-## 2.WeixinOpen
-### 微信开放平台
-- 开发者注册: https://open.weixin.qq.com
-- 管理中心:
+2.WeixinOpen: 微信开放平台(https://open.weixin.qq.com)
+创建网站应用，配置授权回调域（例如：auth.myvas.com )，记下AppId，获取AppSecret。
 
-创建网站应用，配置授权回调域（例如：auth.myvas.com )，记下AppId，获取AppSecret
 
-### ConfigureServices
 ```csharp
 services.AddAuthentication()
     .AddWeixinOpen(options => 
@@ -75,26 +68,20 @@ services.AddAuthentication()
     };
 ```
 
-## 3.WeixinAuth
-### 微信公众平台
-https://mp.weixin.qq.com
+3.WeixinAuth: 微信公众平台(https://mp.weixin.qq.com)
 
-（1）微信公众平台-测试账号
-
-/开发/开发者工具/公众平台测试号/...
+（1）微信公众平台-测试账号/开发/开发者工具/公众平台测试号/...
 
 - 开通功能：网页服务/网页授权获取用户基本信息。
 - 设置好授权回调页面域名：例如，auth.myvas.com。
 
-（2）微信公众平台-正式账号
-
-/开发/接口权限/...
+（2）微信公众平台-已认证服务号/开发/接口权限/...
 
 - 开通功能：网页服务/网页授权获取用户基本信息。
 - 设置好网页授权域名：例如，auth.myvas.com。
 - 将文件MP_verify_xxxxxxxxx.txt上传至wwwroot目录下。
 
-### ConfigureServices
+
 ```csharp
 services.AddAuthentication()
     .AddWeixinAuth(options => 
