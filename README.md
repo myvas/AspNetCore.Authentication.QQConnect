@@ -14,7 +14,7 @@ An ASP.NET Core authentication middleware: WeixinOpen for https://open.weixin.qq
 
 微信开放平台/微信扫码登录：须微信开放平台(open.weixin.qq.com)账号，用户使用微信扫码并确认后登入网站。
 
-* nuget: https://www.nuget.org/packages/AspNetCore.Authentication.WeixinOpen
+* nuget: https://www.nuget.org/packages/Myvas.AspNetCore.Authentication.WeixinOpen
 * github: https://github.com/myvas/AspNetCore.Authentication.WeixinOpen
 
 ## 3.AspNetCore.Authentication.WeixinAuth
@@ -22,7 +22,7 @@ An ASP.NET Core authentication middleware: WeixinAuth for https://mp.weixin.qq.c
 
 微信公众平台/网页授权登录，须微信公众平台（mp.weixin.qq.com）已认证的服务号（或测试号），用户在微信客户端访问网站时自动登入网站。
 
-* nuget: https://www.nuget.org/packages/AspNetCore.Authentication.WeixinAuth
+* nuget: https://www.nuget.org/packages/Myvas.AspNetCore.Authentication.WeixinAuth
 * github: https://github.com/myvas/AspNetCore.Authentication.WeixinAuth
 
 # How to Use
@@ -33,7 +33,7 @@ An ASP.NET Core authentication middleware: WeixinAuth for https://mp.weixin.qq.c
 
 ## ConfigureServices
 1.QQConnect: 腾讯QQ互联平台(https://connect.qq.com)
-创建应用（网站应用，移动应用），并指定网站回调地址（例如：https://www.myvas.com/qqlogin )，记下AppId和AppKey。
+创建应用（网站应用，移动应用），并指定网站回调地址（例如：https://www.myvas.com/signin-qqconnect )，记下AppId和AppKey。
 
 
 ```csharp
@@ -43,7 +43,7 @@ services.AddAuthentication()
         options.AppId = Configuration["QQConnect:AppId"];
         options.AppKey = Configuration["QQConnect:AppKey"];
 
-        options.CallbackPath = "/qqlogin"; //默认为"/signin-qqconnect"
+        options.CallbackPath = "/signin-qqconnect"; //默认
 
         QQConnectScopes.TryAdd(options.Scope,
             QQConnectScopes.get_user_info,
