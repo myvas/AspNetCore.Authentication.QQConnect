@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Myvas.AspNetCore.Authentication.QQConnect
+namespace Myvas.AspNetCore.Authentication
 {
     public class QQConnectErrorJson
     {

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
-namespace Myvas.AspNetCore.Authentication.QQConnect
+namespace Myvas.AspNetCore.Authentication
 {
     /// <summary>
     /// Defines constants for the well-known claim types that can be assigned to a subject.
@@ -13,13 +13,18 @@ namespace Myvas.AspNetCore.Authentication.QQConnect
     public static class QQConnectClaimTypes
     {
         /// <summary>
-        /// urn:qq:unionid, should be <see cref="ClaimTypes.NameIdentifier"/>
+        /// urn:qq:unionid
+        /// </summary>
+        public const string ClientId = "urn:qq:client_id";
+
+        /// <summary>
+        /// urn:qq:unionid
         /// </summary>
         public const string UnionId = "urn:qq:unionid";
 
         #region snsapi_base
         /// <summary>
-        /// urn:qq:openid, should NOT be <see cref="ClaimTypes.NameIdentifier"/>
+        /// urn:qq:openid, should be <see cref="ClaimTypes.NameIdentifier"/>
         /// </summary>
         public const string OpenId = "urn:qq:openid";
 
@@ -63,19 +68,59 @@ namespace Myvas.AspNetCore.Authentication.QQConnect
         /// urn:qq:headimgurl_qq_2, 大小为100x100像素的QQ头像URL。
         /// </summary>
         public const string FigureUrl_qq_2 = "urn:qq:figureurl_qq_2";
+        
+        /// <summary>
+        /// urn:qq:vip，是否QQ会员:1 or 0。
+        /// </summary>
+        public const string Vip = "urn:qq:vip";
 
         /// <summary>
-        /// urn:qq:sex, should be <see cref="ClaimTypes.Gender"/>，性别。 如果获取不到则默认返回"男"。
+        /// urn:qq:is_qq_vip，是否QQ会员:1 or 0。
+        /// </summary>
+        public const string IsQQVip = "urn:qq:is_qq_vip";
+
+        /// <summary>
+        /// urn:qq:is_qq_year_vip，是否年费QQ会员:1 or 0。
+        /// </summary>
+        public const string IsQQYearVip = "urn:qq:is_qq_year_vip";
+
+        /// <summary>
+        /// urn:qq:level，QQ会员等级：1~7。
+        /// </summary>
+        public const string Level = "urn:qq:level";
+
+        /// <summary>
+        /// urn:qq:qq_vip_level，QQ会员等级：1~7。
+        /// </summary>
+        public const string QQVipLevel = "urn:qq:qq_vip_level";
+
+        /// <summary>
+        /// urn:qq:is_yellow_vip，超级会员：1 or 0。
+        /// </summary>
+        public const string IsYellowVip = "urn:qq:is_yellow_vip";
+
+        /// <summary>
+        /// urn:qq:is_yellow_year_vip，年费超级会员:1 or 0。
+        /// </summary>
+        public const string IsYellowYearVip = "urn:qq:is_yellow_year_vip";
+
+        /// <summary>
+        /// urn:qq:yellow_vip_level，超级会员等级:1~8。
+        /// </summary>
+        public const string YellowVipLevel = "urn:qq:yellow_vip_level";
+        
+        /// <summary>
+        /// urn:qq:sex，性别。 如果获取不到则默认返回"男"。
         /// </summary>
         public const string Gender = "urn:qq:gender";
 
         /// <summary>
-        /// urn:qq:country, should be <see cref="ClaimTypes.Country"/>
+        /// urn:qq:country
         /// </summary>
         public const string Country = "urn:qq:country";
 
         /// <summary>
-        /// urn:qq:province, should be <see cref="ClaimTypes.StateOrProvince"/>
+        /// urn:qq:province
         /// </summary>
         public const string Province = "urn:qq:province";
 

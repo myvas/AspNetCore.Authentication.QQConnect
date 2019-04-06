@@ -13,7 +13,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Text;
 
-namespace Myvas.AspNetCore.Authentication.QQConnect
+namespace Myvas.AspNetCore.Authentication
 {
     public class QQConnectHandler : OAuthHandler<QQConnectOptions>
     {

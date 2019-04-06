@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Myvas.AspNetCore.Authentication.QQConnect
+namespace Myvas.AspNetCore.Authentication
 {
     /// <summary>
     /// PC网站接入时，获取到用户OpenID，返回包如下：

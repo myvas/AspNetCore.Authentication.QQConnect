@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.OAuth;
 using Microsoft.AspNetCore.Http;
+using Myvas.AspNetCore.Authentication.QQConnect;
 using System;
 using System.Security.Claims;
 
@@ -42,22 +43,21 @@ namespace Myvas.AspNetCore.Authentication
 
             ClaimActions.MapJsonKey(ClaimTypes.NameIdentifier, "openid");
             ClaimActions.MapJsonKey(ClaimTypes.Name, "nickname");
-            ClaimActions.MapJsonKey(ClaimTypes.Gender, "gender");
 
-            ClaimActions.MapJsonKey("urn:qq:client_id", "client_id");
-            ClaimActions.MapJsonKey("urn:qq:openid", "openid");
-            ClaimActions.MapJsonKey("urn:qq:nickname", "nickname");
-            ClaimActions.MapJsonKey("urn:qq:figureurl", "figureurl");
-            ClaimActions.MapJsonKey("urn:qq:figureurl_1", "figureurl_1");
-            ClaimActions.MapJsonKey("urn:qq:figureurl_2", "figureurl_2");
-            ClaimActions.MapJsonKey("urn:qq:figureurl_qq_1", "figureurl_qq_1");
-            ClaimActions.MapJsonKey("urn:qq:figureurl_qq_2", "figureurl_qq_2");
-            ClaimActions.MapJsonKey("urn:qq:gender", "gender");
-            ClaimActions.MapJsonKey("urn:qq:is_yellow_vip", "is_yellow_vip");
-            ClaimActions.MapJsonKey("urn:qq:vip", "vip");
-            ClaimActions.MapJsonKey("urn:qq:yellow_vip_level", "yellow_vip_level");
-            ClaimActions.MapJsonKey("urn:qq:level", "level");
-            ClaimActions.MapJsonKey("urn:qq:is_yellow_year_vip", "is_yellow_year_vip");
+            ClaimActions.MapJsonKey(QQConnectClaimTypes.ClientId, "client_id");
+            ClaimActions.MapJsonKey(QQConnectClaimTypes.OpenId, "openid");
+            ClaimActions.MapJsonKey(QQConnectClaimTypes.NickName, "nickname");
+            ClaimActions.MapJsonKey(QQConnectClaimTypes.FigureUrl, "figureurl");
+            ClaimActions.MapJsonKey(QQConnectClaimTypes.FigureUrl_1, "figureurl_1");
+            ClaimActions.MapJsonKey(QQConnectClaimTypes.FigureUrl_2, "figureurl_2");
+            ClaimActions.MapJsonKey(QQConnectClaimTypes.FigureUrl_qq_1, "figureurl_qq_1");
+            ClaimActions.MapJsonKey(QQConnectClaimTypes.FigureUrl_qq_2, "figureurl_qq_2");
+            ClaimActions.MapJsonKey(QQConnectClaimTypes.Gender, "gender");
+            ClaimActions.MapJsonKey(QQConnectClaimTypes.IsYellowVip, "is_yellow_vip");
+            ClaimActions.MapJsonKey(QQConnectClaimTypes.Vip, "vip");
+            ClaimActions.MapJsonKey(QQConnectClaimTypes.YellowVipLevel, "yellow_vip_level");
+            ClaimActions.MapJsonKey(QQConnectClaimTypes.Level, "level");
+            ClaimActions.MapJsonKey(QQConnectClaimTypes.IsYellowYearVip, "is_yellow_year_vip");
         }
 
         public override void Validate()
