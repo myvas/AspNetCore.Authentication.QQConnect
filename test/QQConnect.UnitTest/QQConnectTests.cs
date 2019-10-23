@@ -35,31 +35,7 @@ namespace UnitTest
             o.AppKey = "Test Secret";
             //o.SignInScheme = "auth1";//QQConnectDefaults.AuthenticationScheme;
         }
-
-        [Fact]
-        public async Task ChallengeWithRealAccount()
-        {
-            var stateFormat = new PropertiesDataFormat(new EphemeralDataProtectionProvider(NullLoggerFactory.Instance).CreateProtector("QQConnectTest"));
-            var server = CreateServer(o =>
-            {
-                ConfigureDefaults(o);
-                o.AppId = "101511936";
-                o.AppKey = "ddd401a2c48f2c470e852b00f63defb3";
-                o.StateDataFormat = stateFormat;
-            });
-
-            var transaction = await server.SendAsync("http://weixinoauth.myvas.com/challenge-qqconnect");
-            Assert.Equal(HttpStatusCode.Redirect, transaction.Response.StatusCode);
-            //Location: https://graph.qq.com/oauth2.0/authorize?response_type=code&client_id=101511936&redirect_uri=http%3A%2F%2Fweixinoauth.myvas.com%2Fsignin-qqconnect&state=CfDJ8AAAAAAAAAAAAAAAAAAAAAAgT51TbRTOV940aEHuP9dRKyz1_P4bC1T0w_ImybTBuyHZwbWxCs6V8fNKSYl-8IpwXxO5bFMFs4hjw9WWAT-n79_r6exk_ajXN2npXGDBhhSoDIlPuJBY9mzPiK0oGdyZwAfauBDRNXvnuJfbPZMMXGL9o0Eko_V0is9YlUf9ie0fJq-jvoX_a7Be0SUFm7PvGAEwseIY6e1TO3rB1r7u0A&scope=get_user_info&display=
-            Assert.StartsWith(QQConnectDefaults.AuthorizationEndpoint, transaction.Response.Headers.Location.AbsoluteUri);
-            Assert.Contains("response_type=code", transaction.Response.Headers.Location.PathAndQuery);
-            Assert.Contains("client_id=101511936", transaction.Response.Headers.Location.PathAndQuery);
-            Assert.Contains("redirect_uri=", transaction.Response.Headers.Location.PathAndQuery);
-            Assert.Contains("state=", transaction.Response.Headers.Location.PathAndQuery);
-            Assert.Contains("scope=get_user_info", transaction.Response.Headers.Location.PathAndQuery);
-            Assert.Contains("display=", transaction.Response.Headers.Location.PathAndQuery);
-        }
-
+        
         [Fact]
         public async Task CodeMockValid()
         {
