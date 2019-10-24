@@ -3,7 +3,8 @@
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <Authors>Myvas</Authors>
-    <Version>2.1.802</Version>
+    <Version>2.2.1025.0</Version>
+    <PackageVersion>2.2.1025</PackageVersion>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Description>An ASP.NET Core authentication middleware: QQConnect for https://connect.qq.com (腾讯QQ互联平台/QQ登录）
 
@@ -17,7 +18,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.OAuth" Version="2.1.2" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.OAuth" Version="2.2.0" />
   </ItemGroup>
 
 </Project>
