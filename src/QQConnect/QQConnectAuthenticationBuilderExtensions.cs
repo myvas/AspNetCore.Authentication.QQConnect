@@ -1,8 +1,12 @@
 ﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Options;
 using Myvas.AspNetCore.Authentication;
 using Myvas.AspNetCore.Authentication.QQConnect;
+using Myvas.AspNetCore.Authentication.QQConnect.Internal;
 using System;
+using System.Net.Http;
 
 namespace Microsoft.Extensions.DependencyInjection
 {
@@ -29,8 +33,10 @@ namespace Microsoft.Extensions.DependencyInjection
             }
 
             builder.Services.TryAddTransient<IQQConnectApi, QQConnectApi>();
+            //return builder.AddOAuth<QQConnectOptions, QQConnectHandler>(authenticationScheme, displayName, setupAction);
+            builder.Services.TryAddEnumerable(ServiceDescriptor.Singleton<IPostConfigureOptions<QQConnectOptions>, QQConnectPostConfigureOptions>());
+            return builder.AddRemoteScheme<QQConnectOptions, QQConnectHandler>(authenticationScheme, displayName, setupAction);
 
-            return builder.AddOAuth<QQConnectOptions, QQConnectHandler>(authenticationScheme, displayName, setupAction);
         }
     }
 }

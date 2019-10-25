@@ -1,21 +1,18 @@
 ﻿using Microsoft.AspNetCore.Authentication.OAuth;
-using Microsoft.Net.Http;
-using Microsoft.Extensions.Options;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using Microsoft.AspNetCore.Http;
-using System.Net.Http;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.Logging;
-using System.Threading.Tasks;
-using Newtonsoft.Json.Linq;
+using System;
+using System.Collections.Generic;
+using System.Net.Http;
+using System.Text;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Threading.Tasks;
 
-namespace Myvas.AspNetCore.Authentication
+namespace Myvas.AspNetCore.Authentication.QQConnect.Internal
 {
-    public class QQConnectApi : IQQConnectApi
+    internal class QQConnectApi : IQQConnectApi
     {
         public ILogger Logger { get; }
 
@@ -101,7 +98,7 @@ namespace Myvas.AspNetCore.Authentication
         /// <param name="openid"></param>
         /// <param name="languageCode"></param>
         /// <returns>{“client_id”:”YOUR_APPID”,”openid”:”YOUR_OPENID”}</returns>
-        public async Task<JObject> GetOpenId(HttpClient backchannel, string openIdEndpoint, string accessToken, CancellationToken cancellationToken)
+        public async Task<JsonDocument> GetOpenId(HttpClient backchannel, string openIdEndpoint, string accessToken, CancellationToken cancellationToken)
         {
             // Get the openId and clientId
             var openIdParameters = new Dictionary<string, string>()
@@ -135,15 +132,15 @@ namespace Myvas.AspNetCore.Authentication
         /// <param name="content"></param>
         /// <remarks>access_token=E92FA4F3C0CEB05F2B8AF97D71D89F86&expires_in=7776000&refresh_token=80D06D921B91EAE3B196C8480EEF5521</remarks>
         /// <returns></returns>
-        private JObject ParseQueryString(string content)
+        private JsonDocument ParseQueryString(string content)
         {
             try
             {
-                var result = new JObject();
+                var result = JsonDocument.Parse("{}");
                 var dict = System.Web.HttpUtility.ParseQueryString(content);
                 foreach (var k in dict.AllKeys)
                 {
-                    result.Add(k, dict[k]);
+                    result = result.AppendElement(k, dict[k]);
                 }
                 return result;
             }
@@ -155,9 +152,10 @@ namespace Myvas.AspNetCore.Authentication
             var error = $"Failed on parsing query string: {content}";
             throw new HttpRequestException(error);
         }
-        private bool IsQuerySuccess(JObject payload)
+        private bool IsQuerySuccess(JsonDocument payload)
         {
-            return payload.Count > 0;
+            var test = payload.GetString("access_token");
+            return !string.IsNullOrWhiteSpace(test);
         }
 
         /// <summary>
@@ -166,7 +164,7 @@ namespace Myvas.AspNetCore.Authentication
         /// <param name="content"></param>
         /// <remarks>callback( {"error":100001,"error_description":"param client_id is wrong or lost "} );</remarks>
         /// <returns></returns>
-        private JObject ParseCallbackString(string content)
+        private JsonDocument ParseCallbackString(string content)
         {
             try
             {
@@ -176,7 +174,8 @@ namespace Myvas.AspNetCore.Authentication
                 if (match.Success)
                 {
                     var json = match.Groups["Json"].Value;
-                    return JObject.Parse(json);
+                    json = json.Trim();
+                    return JsonDocument.Parse(json);
                 }
             }
             catch (Exception ex)
@@ -190,9 +189,9 @@ namespace Myvas.AspNetCore.Authentication
         /// <summary>
         /// 示例：{"error":100001,"error_description":"param client_id is wrong or lost "}
         /// </summary>
-        private bool IsCallbackSuccess(JObject payload)
+        private bool IsCallbackSuccess(JsonDocument payload)
         {
-            return payload.Value<int?>("error").GetValueOrDefault(0) == 0;
+            return payload.RootElement.GetInt32("error", 0) == 0;
         }
 
         /// <summary>
@@ -200,11 +199,11 @@ namespace Myvas.AspNetCore.Authentication
         /// </summary>
         /// <param name="content"></param>
         /// <returns></returns>
-        private JObject ParseJsonString(string content)
+        private JsonDocument ParseJsonString(string content)
         {
             try
             {
-                return JObject.Parse(content);
+                return JsonDocument.Parse(content);
             }
             catch (Exception ex)
             {
@@ -217,9 +216,9 @@ namespace Myvas.AspNetCore.Authentication
         /// <summary>
         /// 示例： { "ret":1002, "msg":"请先登录" }
         /// </summary>
-        private bool IsJsonSuccess(JObject payload)
+        private bool IsJsonSuccess(JsonDocument payload)
         {
-            return payload.Value<int?>("ret").GetValueOrDefault(0) == 0;
+            return payload.RootElement.GetInt32("ret", 0) == 0;
         }
         #endregion
 
@@ -230,7 +229,7 @@ namespace Myvas.AspNetCore.Authentication
         /// <param name="clientId">oauth_consumer_key</param>
         /// <param name="openid"></param>
         /// <returns></returns>
-        public async Task<JObject> GetUserInfo(HttpClient backchannel, string userInformationEndpoint, string accessToken, string openid, string clientId, CancellationToken cancellationToken)
+        public async Task<JsonDocument> GetUserInfo(HttpClient backchannel, string userInformationEndpoint, string accessToken, string openid, string clientId, CancellationToken cancellationToken)
         {
             // Get the UserInfo
             var getUserInfoParameters = new Dictionary<string, string>()
@@ -289,7 +288,7 @@ namespace Myvas.AspNetCore.Authentication
         /// <param name="clientId"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public async Task<JObject> GetUserVipInfo(HttpClient backchannel, string userVipInfoEndpoint, string accessToken, string openid, string clientId, CancellationToken cancellationToken)
+        public async Task<JsonDocument> GetUserVipInfo(HttpClient backchannel, string userVipInfoEndpoint, string accessToken, string openid, string clientId, CancellationToken cancellationToken)
         {
             // Get the UserVipInfo
             var getUserInfoParameters = new Dictionary<string, string>()
@@ -340,7 +339,7 @@ namespace Myvas.AspNetCore.Authentication
         /// <param name="clientId"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public async Task<JObject> GetUserVipRichInfo(HttpClient backchannel, string userVipRichInfoEndpoint, string accessToken, string openid, string clientId, CancellationToken cancellationToken)
+        public async Task<JsonDocument> GetUserVipRichInfo(HttpClient backchannel, string userVipRichInfoEndpoint, string accessToken, string openid, string clientId, CancellationToken cancellationToken)
         {
             // Get the userVipRichInfo
             var getUserInfoParameters = new Dictionary<string, string>()
@@ -406,7 +405,7 @@ namespace Myvas.AspNetCore.Authentication
         /// <param name="clientId"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public async Task<JObject> ListAlbum(HttpClient backchannel, string photoListAlbumEndpoint, string accessToken, string openid, string clientId, CancellationToken cancellationToken)
+        public async Task<JsonDocument> ListAlbum(HttpClient backchannel, string photoListAlbumEndpoint, string accessToken, string openid, string clientId, CancellationToken cancellationToken)
         {
             // Get the photoListAlbum
             var getUserInfoParameters = new Dictionary<string, string>()
@@ -462,9 +461,9 @@ namespace Myvas.AspNetCore.Authentication
         /// <param name="clientId"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public async Task<JObject> UploadPicture(HttpClient backchannel, string uploadPictureEndpoint, string accessToken, string openid, string clientId, /*PhotoUploadSinglePictureRequestParameters*/object param, CancellationToken cancellationToken)
+        public async Task<JsonDocument> UploadPicture(HttpClient backchannel, string uploadPictureEndpoint, string accessToken, string openid, string clientId, /*PhotoUploadSinglePictureRequestParameters*/object param, CancellationToken cancellationToken)
         {
-            await Task.FromResult<JObject>(null);
+            await Task.FromResult<JsonDocument>(null);
             throw new NotImplementedException();
         }
 
@@ -478,9 +477,9 @@ namespace Myvas.AspNetCore.Authentication
         /// <param name="clientId"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public async Task<JObject> AddAlbum(HttpClient backchannel, string addAlbumEndpoint, string accessToken, string openid, string clientId, CancellationToken cancellationToken)
+        public async Task<JsonDocument> AddAlbum(HttpClient backchannel, string addAlbumEndpoint, string accessToken, string openid, string clientId, CancellationToken cancellationToken)
         {
-            await Task.FromResult<JObject>(null);
+            await Task.FromResult<JsonDocument>(null);
             throw new NotImplementedException();
         }
 
@@ -494,13 +493,13 @@ namespace Myvas.AspNetCore.Authentication
         /// <param name="clientId"></param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public async Task<JObject> ListPhoto(HttpClient backchannel, string listPhotoEndpoint, string accessToken, string openid, string clientId, CancellationToken cancellationToken)
+        public async Task<JsonDocument> ListPhoto(HttpClient backchannel, string listPhotoEndpoint, string accessToken, string openid, string clientId, CancellationToken cancellationToken)
         {
-            await Task.FromResult<JObject>(null);
+            await Task.FromResult<JsonDocument>(null);
             throw new NotImplementedException();
         }
 
-        public Task<JObject> UploadPicture(HttpClient backchannel, string uploadPictureEndpoint, string accessToken, string openid, string clientId, CancellationToken cancellationToken)
+        public Task<JsonDocument> UploadPicture(HttpClient backchannel, string uploadPictureEndpoint, string accessToken, string openid, string clientId, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
