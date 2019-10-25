@@ -1,24 +1,26 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
-    <Authors>Myvas</Authors>
-    <Version>2.2.1025.0</Version>
-    <PackageVersion>2.2.1025</PackageVersion>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
+    <PackageId>Myvas.AspNetCore.Authentication.QQConnect</PackageId>
+    <AssemblyName>Myvas.AspNetCore.Authentication.QQConnect</AssemblyName>
+    <RootNamespace>Myvas.AspNetCore.Authentication.QQConnect</RootNamespace>
+    <Product>Myvas.AspNetCore.Authentication</Product>
+    <Version>3.0.100.1</Version>
+    <PackageVersion>3.0.100-alpha1</PackageVersion>
+    <IsShippingPackage>true</IsShippingPackage>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <Authors>Myvas</Authors>
     <Description>An ASP.NET Core authentication middleware: QQConnect for https://connect.qq.com (腾讯QQ互联平台/QQ登录）
 
 使用说明：须腾讯QQ互联平台（connect.qq.com）账号，用户通过点击“QQ登录”图标按钮，或使用手机QQ扫码登入网站。</Description>
     <PackageProjectUrl>https://github.com/myvas/AspNetCore.Authentication.QQConnect</PackageProjectUrl>
     <PackageTags>Myvas,AspNetCore, Authentication, QQ Connect, Tencent</PackageTags>
-    <AssemblyName>Myvas.AspNetCore.Authentication.QQConnect</AssemblyName>
-    <RootNamespace>Myvas.AspNetCore.Authentication.QQConnect</RootNamespace>
-    <PackageId>Myvas.AspNetCore.Authentication.QQConnect</PackageId>
-    <Product>Myvas.AspNetCore.Authentication</Product>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.OAuth" Version="2.2.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.OAuth" Version="3.0.0-preview4-19123-01" />
   </ItemGroup>
 
 </Project>

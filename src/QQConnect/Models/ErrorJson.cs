@@ -1,11 +1,8 @@
-﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Text.Json.Serialization;
 
-namespace Myvas.AspNetCore.Authentication
+namespace Myvas.AspNetCore.Authentication.QQConnect.Internal
 {
-    public class QQConnectErrorJson
+    internal class QQConnectErrorJson
     {
         public int? ret { get; set; }
         public string msg { get; set; }

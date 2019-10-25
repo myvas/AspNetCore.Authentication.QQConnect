@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.TestHost;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Primitives;
 using Myvas.AspNetCore.Authentication;
 using Newtonsoft.Json;
 using System;
@@ -27,13 +28,18 @@ namespace UnitTest
 {
     public class QQConnectTests
     {
+        public const string CorrelationCookieName = ".AspNetCore.Correlation";
+        public const string correlationKey = ".xsrf";
+        public const string correlationId = "TestCorrelationId";
+        public const string correlationMarker = "N";
+
         private void ConfigureDefaults(QQConnectOptions o)
         {
             o.AppId = "Test Id";
             o.AppKey = "Test Secret";
             //o.SignInScheme = "auth1";//QQConnectDefaults.AuthenticationScheme;
         }
-        
+
         [Fact]
         public async Task CodeMockValid()
         {
@@ -47,7 +53,7 @@ namespace UnitTest
                 {
                     OnCreatingTicket = context =>
                     {
-                        Assert.NotNull(context.User);
+                        Assert.True(context.User.ToString().Length > 0);
                         Assert.Equal("Test Access Token", context.AccessToken);
                         Assert.Equal("Test Refresh Token", context.RefreshToken);
                         Assert.Equal(TimeSpan.FromSeconds(3600), context.ExpiresIn);
@@ -59,15 +65,14 @@ namespace UnitTest
             });
 
             var properties = new AuthenticationProperties();
-            var correlationKey = ".xsrf";
-            var correlationValue = "TestCorrelationId";
-            properties.Items.Add(correlationKey, correlationValue);
+            properties.Items.Add(correlationKey, correlationId);
             properties.RedirectUri = "/ExternalLoginCallback";
             var state = stateFormat.Protect(properties);
 
             var transaction = await server.SendAsync(
-                    $"https://example.com{QQConnectDefaults.CallbackPath}?code=TestCode&state=" + UrlEncoder.Default.Encode(state),
-                    $".AspNetCore.Correlation.{QQConnectDefaults.AuthenticationScheme}.{correlationValue}=N");
+                    $"https://example.com{QQConnectDefaults.CallbackPath}?code=TestCode&state=" + UrlEncoder.Default.Encode(correlationId),
+                    $"{CorrelationCookieName}.{QQConnectDefaults.AuthenticationScheme}.{correlationId}={correlationMarker}",
+                    $"{CorrelationCookieName}.{QQConnectDefaults.AuthenticationScheme}.{correlationMarker}.{correlationId}={state}");
             Assert.Equal(HttpStatusCode.Redirect, transaction.Response.StatusCode);
             Assert.Equal("/ExternalLoginCallback", transaction.Response.Headers.GetValues("Location").First());
         }
@@ -573,7 +578,7 @@ namespace UnitTest
                 ConfigureDefaults(o);
             });
             var transaction = await server.SendAsync("https://example.com/challenge");
-            Assert.Contains(transaction.SetCookie, cookie => cookie.StartsWith(".AspNetCore.Correlation.QQConnect."));
+            Assert.Contains(transaction.SetCookie, cookie => cookie.StartsWith($"{CorrelationCookieName}.{QQConnectDefaults.AuthenticationScheme}."));
         }
 
         [Fact]
@@ -604,7 +609,7 @@ namespace UnitTest
                 var res = context.Response;
                 if (req.Path == new PathString("/challenge2"))
                 {
-                    return context.ChallengeAsync("QQConnect", new QQConnectChallengeProperties
+                    return context.ChallengeAsync(QQConnectDefaults.AuthenticationScheme, new QQConnectChallengeProperties
                     {
                         Scope = new string[] { QQConnectScopes.get_user_info, "https://www.googleapis.com/auth/plus.login" },
                         //LoginHint = "test@example.com",
@@ -622,9 +627,8 @@ namespace UnitTest
             //Assert.Equal("test@example.com", query["login_hint"]);
 
             // verify that the passed items were not serialized
-            var stateProperties = stateFormat.Unprotect(query["state"]);
-            Assert.DoesNotContain("scope", stateProperties.Items.Keys);
-            Assert.DoesNotContain("login_hint", stateProperties.Items.Keys);
+            var retrievedCorrelationId = query["state"];
+            Assert.True(!StringValues.IsNullOrEmpty(retrievedCorrelationId));
         }
 
         [Fact]
@@ -642,7 +646,7 @@ namespace UnitTest
                 var res = context.Response;
                 if (req.Path == new PathString("/challenge2"))
                 {
-                    return context.ChallengeAsync("QQConnect", new AuthenticationProperties(new Dictionary<string, string>()
+                    return context.ChallengeAsync(QQConnectDefaults.AuthenticationScheme, new AuthenticationProperties(new Dictionary<string, string>()
                     {
                         { "scope", "https://www.googleapis.com/auth/plus.login" },
                         //{ "login_hint", "test@example.com" },
@@ -660,9 +664,8 @@ namespace UnitTest
             //Assert.Equal("test@example.com", query["login_hint"]);
 
             // verify that the passed items were not serialized
-            var stateProperties = stateFormat.Unprotect(query["state"]);
-            Assert.DoesNotContain("scope", stateProperties.Items.Keys);
-            //Assert.DoesNotContain("login_hint", stateProperties.Items.Keys);
+            var retrievedCorrelationId = query["state"];
+            Assert.True(!StringValues.IsNullOrEmpty(retrievedCorrelationId));
         }
 
         [Fact]
@@ -680,7 +683,7 @@ namespace UnitTest
                 var res = context.Response;
                 if (req.Path == new PathString("/challenge2"))
                 {
-                    return context.ChallengeAsync("QQConnect", new QQConnectChallengeProperties(new Dictionary<string, string>
+                    return context.ChallengeAsync(QQConnectDefaults.AuthenticationScheme, new QQConnectChallengeProperties(new Dictionary<string, string>
                     {
                         [QQConnectChallengeProperties.ScopeKey] = "https://www.googleapis.com/auth/plus.login",
                     }));
@@ -700,10 +703,8 @@ namespace UnitTest
             //Assert.Equal("Test Open ID", query[QQConnectChallengeProperties.OpenIdKey]);
 
             // verify that the passed items were not serialized
-            var stateProperties = stateFormat.Unprotect(query["state"]);
-            Assert.Contains(".redirect", stateProperties.Items.Keys);
-            Assert.Contains(".xsrf", stateProperties.Items.Keys);
-            Assert.DoesNotContain(QQConnectChallengeProperties.ScopeKey, stateProperties.Items.Keys);
+            var retrievedCorrelationId = query["state"];
+            Assert.True(!StringValues.IsNullOrEmpty(retrievedCorrelationId));
         }
 
         [Fact]
@@ -746,7 +747,7 @@ namespace UnitTest
                 var res = context.Response;
                 if (req.Path == new PathString("/auth"))
                 {
-                    var result = await context.AuthenticateAsync("QQConnect");
+                    var result = await context.AuthenticateAsync(QQConnectDefaults.AuthenticationScheme);
                     Assert.NotNull(result.Failure);
                 }
             });
@@ -762,7 +763,7 @@ namespace UnitTest
                 ConfigureDefaults(o);
             });
             var error = await Assert.ThrowsAnyAsync<Exception>(() => server.SendAsync($"https://example.com{QQConnectDefaults.CallbackPath}?code=TestCode"));
-            Assert.Equal("The oauth state was missing or invalid.", error.GetBaseException().Message);
+            Assert.Equal("The oauth state was missing.", error.GetBaseException().Message);
         }
 
         [Theory]
@@ -784,8 +785,10 @@ namespace UnitTest
                     }
                 } : new OAuthEvents();
             });
-            var sendTask = server.SendAsync($"https://example.com{QQConnectDefaults.CallbackPath}?error=OMG&error_description=SoBad&error_uri=foobar&state=protected_state",
-                ".AspNetCore.Correlation.QQConnect.corrilationId=N");
+            var state = "protected_state";
+            var sendTask = server.SendAsync($"https://example.com{QQConnectDefaults.CallbackPath}?error=OMG&error_description=SoBad&error_uri=foobar&state={correlationId}",
+                    $"{CorrelationCookieName}.{QQConnectDefaults.AuthenticationScheme}.{correlationId}={correlationMarker}",
+                    $"{CorrelationCookieName}.{QQConnectDefaults.AuthenticationScheme}.{correlationMarker}.{correlationId}={state}");
             if (redirect)
             {
                 var transaction = await sendTask;
@@ -818,19 +821,18 @@ namespace UnitTest
             });
 
             var properties = new AuthenticationProperties();
-            var correlationKey = ".xsrf";
-            var correlationValue = "TestCorrelationId";
-            properties.Items.Add(correlationKey, correlationValue);
+            properties.Items.Add(correlationKey, correlationId);
             properties.RedirectUri = "/me";
             var state = stateFormat.Protect(properties);
             var transaction = await server.SendAsync(
-                $"https://example.com{QQConnectDefaults.CallbackPath}?code=TestCode&state=" + UrlEncoder.Default.Encode(state),
-                $".AspNetCore.Correlation.QQConnect.{correlationValue}=N");
+                $"https://example.com{QQConnectDefaults.CallbackPath}?code=TestCode&state=" + UrlEncoder.Default.Encode(correlationId),
+                    $"{CorrelationCookieName}.{QQConnectDefaults.AuthenticationScheme}.{correlationId}={correlationMarker}",
+                    $"{CorrelationCookieName}.{QQConnectDefaults.AuthenticationScheme}.{correlationMarker}.{correlationId}={state}");
             Assert.Equal(HttpStatusCode.Redirect, transaction.Response.StatusCode);
             Assert.Equal("/me", transaction.Response.Headers.GetValues("Location").First());
-            Assert.Equal(2, transaction.SetCookie.Count);
-            Assert.Contains($".AspNetCore.Correlation.QQConnect.{correlationValue}", transaction.SetCookie[0]);
-            Assert.Contains(".AspNetCore." + TestExtensions.CookieAuthenticationScheme, transaction.SetCookie[1]);
+            Assert.True(transaction.SetCookie.Count >= 2);
+            Assert.Contains($"{CorrelationCookieName}.{QQConnectDefaults.AuthenticationScheme}.{correlationId}", transaction.SetCookie[1]);
+            Assert.Contains(".AspNetCore." + TestExtensions.CookieAuthenticationScheme, transaction.SetCookie[2]);
 
             var authCookie = transaction.AuthenticationCookieValue;
             transaction = await server.SendAsync("https://example.com/me", authCookie);
@@ -879,15 +881,14 @@ namespace UnitTest
                 } : new OAuthEvents();
             });
             var properties = new AuthenticationProperties();
-            var correlationKey = ".xsrf";
-            var correlationValue = "TestCorrelationId";
-            properties.Items.Add(correlationKey, correlationValue);
+            properties.Items.Add(correlationKey, correlationId);
             properties.RedirectUri = "/me";
 
             var state = stateFormat.Protect(properties);
             var sendTask = server.SendAsync(
-                $"https://example.com{QQConnectDefaults.CallbackPath}?code=TestCode&state=" + UrlEncoder.Default.Encode(state),
-                $".AspNetCore.Correlation.QQConnect.{correlationValue}=N");
+                $"https://example.com{QQConnectDefaults.CallbackPath}?code=TestCode&state=" + UrlEncoder.Default.Encode(correlationId),
+                    $"{CorrelationCookieName}.{QQConnectDefaults.AuthenticationScheme}.{correlationId}={correlationMarker}",
+                    $"{CorrelationCookieName}.{QQConnectDefaults.AuthenticationScheme}.{correlationMarker}.{correlationId}={state}");
             if (redirect)
             {
                 var transaction = await sendTask;
@@ -931,14 +932,13 @@ namespace UnitTest
                 } : new OAuthEvents();
             });
             var properties = new AuthenticationProperties();
-            var correlationKey = ".xsrf";
-            var correlationValue = "TestCorrelationId";
-            properties.Items.Add(correlationKey, correlationValue);
+            properties.Items.Add(correlationKey, correlationId);
             properties.RedirectUri = "/me";
             var state = stateFormat.Protect(properties);
             var sendTask = server.SendAsync(
-                $"https://example.com{QQConnectDefaults.CallbackPath}?code=TestCode&state=" + UrlEncoder.Default.Encode(state),
-                $".AspNetCore.Correlation.QQConnect.{correlationValue}=N");
+                $"https://example.com{QQConnectDefaults.CallbackPath}?code=TestCode&state=" + UrlEncoder.Default.Encode(correlationId),
+                    $"{CorrelationCookieName}.{QQConnectDefaults.AuthenticationScheme}.{correlationId}={correlationMarker}",
+                    $"{CorrelationCookieName}.{QQConnectDefaults.AuthenticationScheme}.{correlationMarker}.{correlationId}={state}");
             if (redirect)
             {
                 var transaction = await sendTask;
@@ -979,13 +979,14 @@ namespace UnitTest
             properties.RedirectUri = "/me";
             var state = stateFormat.Protect(properties);
             var transaction = await server.SendAsync(
-                $"https://example.com{QQConnectDefaults.CallbackPath}?code=TestCode&state=" + UrlEncoder.Default.Encode(state),
-                $".AspNetCore.Correlation.QQConnect.{correlationValue}=N");
+                $"https://example.com{QQConnectDefaults.CallbackPath}?code=TestCode&state=" + UrlEncoder.Default.Encode(correlationId),
+                    $"{CorrelationCookieName}.{QQConnectDefaults.AuthenticationScheme}.{correlationId}={correlationMarker}",
+                    $"{CorrelationCookieName}.{QQConnectDefaults.AuthenticationScheme}.{correlationMarker}.{correlationId}={state}");
             Assert.Equal(HttpStatusCode.Redirect, transaction.Response.StatusCode);
             Assert.Equal("/me", transaction.Response.Headers.GetValues("Location").First());
-            Assert.Equal(2, transaction.SetCookie.Count);
-            Assert.Contains($".AspNetCore.Correlation.QQConnect.{correlationValue}", transaction.SetCookie[0]);
-            Assert.Contains(".AspNetCore." + TestExtensions.CookieAuthenticationScheme, transaction.SetCookie[1]);
+            Assert.True(transaction.SetCookie.Count >= 2);
+            Assert.Contains($"{CorrelationCookieName}.{QQConnectDefaults.AuthenticationScheme}.{correlationValue}", transaction.SetCookie[1]);
+            Assert.Contains(".AspNetCore." + TestExtensions.CookieAuthenticationScheme, transaction.SetCookie[2]);
 
             var authCookie = transaction.AuthenticationCookieValue;
             transaction = await server.SendAsync("https://example.com/me", authCookie);
@@ -1012,18 +1013,17 @@ namespace UnitTest
                 };
             });
             var properties = new AuthenticationProperties();
-            var correlationKey = ".xsrf";
-            var correlationValue = "TestCorrelationId";
-            properties.Items.Add(correlationKey, correlationValue);
+            properties.Items.Add(correlationKey, correlationId);
             var state = stateFormat.Protect(properties);
             var transaction = await server.SendAsync(
-                $"https://example.com{QQConnectDefaults.CallbackPath}?code=TestCode&state=" + UrlEncoder.Default.Encode(state),
-                $".AspNetCore.Correlation.QQConnect.{correlationValue}=N");
+                $"https://example.com{QQConnectDefaults.CallbackPath}?code=TestCode&state=" + UrlEncoder.Default.Encode(correlationId),
+                    $"{CorrelationCookieName}.{QQConnectDefaults.AuthenticationScheme}.{correlationId}={correlationMarker}",
+                    $"{CorrelationCookieName}.{QQConnectDefaults.AuthenticationScheme}.{correlationMarker}.{correlationId}={state}");
             Assert.Equal(HttpStatusCode.Redirect, transaction.Response.StatusCode);
             Assert.Equal("/", transaction.Response.Headers.GetValues("Location").First());
-            Assert.Equal(2, transaction.SetCookie.Count);
-            Assert.Contains($".AspNetCore.Correlation.QQConnect.{correlationValue}", transaction.SetCookie[0]);
-            Assert.Contains(".AspNetCore." + TestExtensions.CookieAuthenticationScheme, transaction.SetCookie[1]);
+            Assert.True(transaction.SetCookie.Count >= 2);
+            Assert.Contains($"{CorrelationCookieName}.{QQConnectDefaults.AuthenticationScheme}.{correlationId}", transaction.SetCookie[1]);
+            Assert.Contains(".AspNetCore." + TestExtensions.CookieAuthenticationScheme, transaction.SetCookie[2]);
         }
 
         [Fact]
@@ -1039,7 +1039,7 @@ namespace UnitTest
                 {
                     OnCreatingTicket = context =>
                     {
-                        Assert.NotNull(context.User);
+                        Assert.True(context.User.ToString().Length > 0);
                         Assert.Equal("Test Access Token", context.AccessToken);
                         Assert.Equal("Test Refresh Token", context.RefreshToken);
                         Assert.Equal(TimeSpan.FromSeconds(3600), context.ExpiresIn);
@@ -1053,16 +1053,15 @@ namespace UnitTest
             });
 
             var properties = new AuthenticationProperties();
-            var correlationKey = ".xsrf";
-            var correlationValue = "TestCorrelationId";
-            properties.Items.Add(correlationKey, correlationValue);
+            properties.Items.Add(correlationKey, correlationId);
             properties.RedirectUri = "/foo";
             var state = stateFormat.Protect(properties);
 
             //Post a message to the QQConnect middleware
             var transaction = await server.SendAsync(
-                $"https://example.com{QQConnectDefaults.CallbackPath}?code=TestCode&state=" + UrlEncoder.Default.Encode(state),
-                $".AspNetCore.Correlation.{QQConnectDefaults.AuthenticationScheme}.{correlationValue}=N");
+                $"https://example.com{QQConnectDefaults.CallbackPath}?code=TestCode&state=" + UrlEncoder.Default.Encode(correlationId),
+                    $"{CorrelationCookieName}.{QQConnectDefaults.AuthenticationScheme}.{correlationId}={correlationMarker}",
+                    $"{CorrelationCookieName}.{QQConnectDefaults.AuthenticationScheme}.{correlationMarker}.{correlationId}={state}");
 
             Assert.Equal(HttpStatusCode.Redirect, transaction.Response.StatusCode);
             Assert.Equal("/foo", transaction.Response.Headers.GetValues("Location").First());
@@ -1078,7 +1077,7 @@ namespace UnitTest
 
             //Post a message to the QQConnect middleware
             var error = await Assert.ThrowsAnyAsync<Exception>(() => server.SendAsync($"https://example.com{QQConnectDefaults.CallbackPath}"));
-            Assert.Equal("The oauth state was missing or invalid.", error.GetBaseException().Message);
+            Assert.Equal("The oauth state was missing.", error.GetBaseException().Message);
         }
 
         [Fact]
@@ -1091,7 +1090,7 @@ namespace UnitTest
 
             //Post a message to the QQConnect middleware
             var error = await Assert.ThrowsAnyAsync<Exception>(() => server.SendAsync($"https://example.com{QQConnectDefaults.CallbackPath}?state=TestState"));
-            Assert.Equal("The oauth state was missing or invalid.", error.GetBaseException().Message);
+            Assert.StartsWith("The oauth state cookie was missing:", error.GetBaseException().Message);
         }
 
         [Fact]
@@ -1105,15 +1104,15 @@ namespace UnitTest
             });
 
             var properties = new AuthenticationProperties();
-            var correlationKey = ".xsrf";
-            var correlationValue = "TestCorrelationId";
-            properties.Items.Add(correlationKey, correlationValue);
+            properties.Items.Add(correlationKey, correlationId);
             var state = stateFormat.Protect(properties);
 
             var error3 = await Assert.ThrowsAnyAsync<Exception>(()
                 => server.SendAsync(
-                    $"https://example.com{QQConnectDefaults.CallbackPath}?state=" + UrlEncoder.Default.Encode(state)));
-            Assert.Equal("Correlation failed.", error3.GetBaseException().Message);
+                    $"https://example.com{QQConnectDefaults.CallbackPath}?state=" + UrlEncoder.Default.Encode(correlationId),
+                    $"{CorrelationCookieName}.{QQConnectDefaults.AuthenticationScheme}.{correlationId}={correlationMarker}",
+                    $"{CorrelationCookieName}.{QQConnectDefaults.AuthenticationScheme}.{correlationMarker}.{correlationId}={state}"));
+            Assert.Equal("Code was not found.", error3.GetBaseException().Message);
         }
 
         [Fact]
@@ -1127,15 +1126,14 @@ namespace UnitTest
             });
 
             var properties = new AuthenticationProperties();
-            var correlationKey = ".xsrf";
-            var correlationValue = "TestCorrelationId";
-            properties.Items.Add(correlationKey, correlationValue);
+            properties.Items.Add(correlationKey, correlationId);
             var state = stateFormat.Protect(properties);
 
             var error = await Assert.ThrowsAnyAsync<Exception>(()
                 => server.SendAsync(
-                    $"https://example.com{QQConnectDefaults.CallbackPath}?state=" + UrlEncoder.Default.Encode(state),
-                    $".AspNetCore.Correlation.{QQConnectDefaults.AuthenticationScheme}.{correlationValue}=HERE_MUST_BE_N"));
+                    $"https://example.com{QQConnectDefaults.CallbackPath}?state=" + UrlEncoder.Default.Encode(correlationId),
+                    $"{CorrelationCookieName}.{QQConnectDefaults.AuthenticationScheme}.{correlationId}=HERE_MUST_BE_N",
+                    $"{CorrelationCookieName}.{QQConnectDefaults.AuthenticationScheme}.{correlationMarker}.{correlationId}={state}"));
             Assert.Equal("Correlation failed.", error.GetBaseException().Message);
         }
 
@@ -1150,15 +1148,14 @@ namespace UnitTest
             });
 
             var properties = new AuthenticationProperties();
-            var correlationKey = ".xsrf";
-            var correlationValue = "TestCorrelationId";
-            properties.Items.Add(correlationKey, correlationValue);
+            properties.Items.Add(correlationKey, correlationId);
             var state = stateFormat.Protect(properties);
 
             var error2 = await Assert.ThrowsAnyAsync<Exception>(()
                 => server.SendAsync(
-                    $"https://example.com{QQConnectDefaults.CallbackPath}?state=" + UrlEncoder.Default.Encode(state),
-                    $".AspNetCore.Correlation.{QQConnectDefaults.AuthenticationScheme}.{correlationValue}=N"));
+                    $"https://example.com{QQConnectDefaults.CallbackPath}?state=" + UrlEncoder.Default.Encode(correlationId),
+                    $"{CorrelationCookieName}.{QQConnectDefaults.AuthenticationScheme}.{correlationId}={correlationMarker}",
+                    $"{CorrelationCookieName}.{QQConnectDefaults.AuthenticationScheme}.{correlationMarker}.{correlationId}={state}"));
             Assert.Equal("Code was not found.", error2.GetBaseException().Message);
         }
 
@@ -1185,7 +1182,7 @@ namespace UnitTest
                 $"https://example.com{QQConnectDefaults.CallbackPath}?code=TestCode");
 
             Assert.Equal(HttpStatusCode.Redirect, transaction.Response.StatusCode);
-            Assert.Equal("/error?FailureMessage=" + UrlEncoder.Default.Encode("The oauth state was missing or invalid."),
+            Assert.Equal("/error?FailureMessage=" + UrlEncoder.Default.Encode("The oauth state was missing."),
                 transaction.Response.Headers.GetValues("Location").First());
         }
 
@@ -1204,20 +1201,18 @@ namespace UnitTest
             // Skip the challenge step, go directly to the callback path
 
             var properties = new AuthenticationProperties();
-            var correlationKey = ".xsrf";
-            var correlationValue = "TestCorrelationId";
-            var correlationMarker = "N";
-            properties.Items.Add(correlationKey, correlationValue);
+            properties.Items.Add(correlationKey, correlationId);
             properties.RedirectUri = "/me";
             var state = stateFormat.Protect(properties);
             var transaction = await server.SendAsync(
-                $"https://example.com{QQConnectDefaults.CallbackPath}?code=TestCode&state=" + UrlEncoder.Default.Encode(state),
-                $".AspNetCore.Correlation.QQConnect.{correlationValue}={correlationMarker}");
+                $"https://example.com{QQConnectDefaults.CallbackPath}?code=TestCode&state=" + UrlEncoder.Default.Encode(correlationId),
+                    $"{CorrelationCookieName}.{QQConnectDefaults.AuthenticationScheme}.{correlationId}={correlationMarker}",
+                    $"{CorrelationCookieName}.{QQConnectDefaults.AuthenticationScheme}.{correlationMarker}.{correlationId}={state}");
             Assert.Equal(HttpStatusCode.Redirect, transaction.Response.StatusCode);
             Assert.Equal("/me", transaction.Response.Headers.GetValues("Location").First());
-            Assert.Equal(2, transaction.SetCookie.Count);
-            Assert.Contains($".AspNetCore.Correlation.QQConnect.{correlationValue}", transaction.SetCookie[0]); // Delete
-            Assert.Contains(".AspNetCore." + TestExtensions.CookieAuthenticationScheme, transaction.SetCookie[1]);
+            Assert.True(transaction.SetCookie.Count >= 2);
+            Assert.Contains($"{CorrelationCookieName}.{QQConnectDefaults.AuthenticationScheme}.{correlationId}", transaction.SetCookie[1]); // Delete
+            Assert.Contains(".AspNetCore." + TestExtensions.CookieAuthenticationScheme, transaction.SetCookie[2]);
 
             var authCookie = transaction.AuthenticationCookieValue;
             transaction = await server.SendAsync("https://example.com/authenticate", authCookie);
@@ -1244,19 +1239,18 @@ namespace UnitTest
             // Skip the challenge step, go directly to the callback path
 
             var properties = new AuthenticationProperties();
-            var correlationKey = ".xsrf";
-            var correlationValue = "TestCorrelationId";
-            properties.Items.Add(correlationKey, correlationValue);
+            properties.Items.Add(correlationKey, correlationId);
             properties.RedirectUri = "/me";
             var state = stateFormat.Protect(properties);
             var transaction = await server.SendAsync(
-                $"https://example.com{QQConnectDefaults.CallbackPath}?code=TestCode&state=" + UrlEncoder.Default.Encode(state),
-                $".AspNetCore.Correlation.QQConnect.{correlationValue}=N");
+                $"https://example.com{QQConnectDefaults.CallbackPath}?code=TestCode&state=" + UrlEncoder.Default.Encode(correlationId),
+                    $"{CorrelationCookieName}.{QQConnectDefaults.AuthenticationScheme}.{correlationId}={correlationMarker}",
+                    $"{CorrelationCookieName}.{QQConnectDefaults.AuthenticationScheme}.{correlationMarker}.{correlationId}={state}");
             Assert.Equal(HttpStatusCode.Redirect, transaction.Response.StatusCode);
             Assert.Equal("/me", transaction.Response.Headers.GetValues("Location").First());
-            Assert.Equal(2, transaction.SetCookie.Count);
-            Assert.Contains($".AspNetCore.Correlation.QQConnect.{correlationValue}", transaction.SetCookie[0]); // Delete
-            Assert.Contains(".AspNetCore." + TestExtensions.CookieAuthenticationScheme, transaction.SetCookie[1]);
+            Assert.True(transaction.SetCookie.Count >= 2);
+            Assert.Contains($"{CorrelationCookieName}.{QQConnectDefaults.AuthenticationScheme}.{correlationId}", transaction.SetCookie[1]); // Delete
+            Assert.Contains(".AspNetCore." + TestExtensions.CookieAuthenticationScheme, transaction.SetCookie[2]);
 
             var authCookie = transaction.AuthenticationCookieValue;
             transaction = await server.SendAsync("https://example.com/authenticate-QQConnect", authCookie);
@@ -1283,19 +1277,18 @@ namespace UnitTest
             // Skip the challenge step, go directly to the callback path
 
             var properties = new AuthenticationProperties();
-            var correlationKey = ".xsrf";
-            var correlationValue = "TestCorrelationId";
-            properties.Items.Add(correlationKey, correlationValue);
+            properties.Items.Add(correlationKey, correlationId);
             properties.RedirectUri = "/me";
             var state = stateFormat.Protect(properties);
             var transaction = await server.SendAsync(
-                $"https://example.com{QQConnectDefaults.CallbackPath}?code=TestCode&state=" + UrlEncoder.Default.Encode(state),
-                $".AspNetCore.Correlation.QQConnect.{correlationValue}=N");
+                $"https://example.com{QQConnectDefaults.CallbackPath}?code=TestCode&state=" + UrlEncoder.Default.Encode(correlationId),
+                    $"{CorrelationCookieName}.{QQConnectDefaults.AuthenticationScheme}.{correlationId}={correlationMarker}",
+                    $"{CorrelationCookieName}.{QQConnectDefaults.AuthenticationScheme}.{correlationMarker}.{correlationId}={state}");
             Assert.Equal(HttpStatusCode.Redirect, transaction.Response.StatusCode);
             Assert.Equal("/me", transaction.Response.Headers.GetValues("Location").First());
-            Assert.Equal(2, transaction.SetCookie.Count);
-            Assert.Contains($".AspNetCore.Correlation.QQConnect.{correlationValue}", transaction.SetCookie[0]); // Delete
-            Assert.Contains(".AspNetCore." + TestExtensions.CookieAuthenticationScheme, transaction.SetCookie[1]);
+            Assert.True(transaction.SetCookie.Count >= 2);
+            Assert.Contains($"{CorrelationCookieName}.{QQConnectDefaults.AuthenticationScheme}.{correlationId}", transaction.SetCookie[1]); // Delete
+            Assert.Contains(".AspNetCore." + TestExtensions.CookieAuthenticationScheme, transaction.SetCookie[2]);
 
             var authCookie = transaction.AuthenticationCookieValue;
             transaction = await server.SendAsync("https://example.com/authenticate-facebook", authCookie);
@@ -1318,19 +1311,18 @@ namespace UnitTest
             // Skip the challenge step, go directly to the callback path
 
             var properties = new AuthenticationProperties();
-            var correlationKey = ".xsrf";
-            var correlationValue = "TestCorrelationId";
-            properties.Items.Add(correlationKey, correlationValue);
+            properties.Items.Add(correlationKey, correlationId);
             properties.RedirectUri = "/me";
             var state = stateFormat.Protect(properties);
             var transaction = await server.SendAsync(
-                $"https://example.com{QQConnectDefaults.CallbackPath}?code=TestCode&state=" + UrlEncoder.Default.Encode(state),
-                $".AspNetCore.Correlation.QQConnect.{correlationValue}=N");
+                $"https://example.com{QQConnectDefaults.CallbackPath}?code=TestCode&state=" + UrlEncoder.Default.Encode(correlationId),
+                    $"{CorrelationCookieName}.{QQConnectDefaults.AuthenticationScheme}.{correlationId}={correlationMarker}",
+                    $"{CorrelationCookieName}.{QQConnectDefaults.AuthenticationScheme}.{correlationMarker}.{correlationId}={state}");
             Assert.Equal(HttpStatusCode.Redirect, transaction.Response.StatusCode);
             Assert.Equal("/me", transaction.Response.Headers.GetValues("Location").First());
-            Assert.Equal(2, transaction.SetCookie.Count);
-            Assert.Contains($".AspNetCore.Correlation.QQConnect.{correlationValue}", transaction.SetCookie[0]); // Delete
-            Assert.Contains(".AspNetCore." + TestExtensions.CookieAuthenticationScheme, transaction.SetCookie[1]);
+            Assert.True(transaction.SetCookie.Count >= 2);
+            Assert.Contains($"{CorrelationCookieName}.{QQConnectDefaults.AuthenticationScheme}.{correlationId}", transaction.SetCookie[1]); // Delete
+            Assert.Contains(".AspNetCore." + TestExtensions.CookieAuthenticationScheme, transaction.SetCookie[2]);
 
             var authCookie = transaction.AuthenticationCookieValue;
             transaction = await server.SendAsync("https://example.com/challenge-facebook", authCookie);
@@ -1463,71 +1455,72 @@ namespace UnitTest
                     {
                         var req = context.Request;
                         var res = context.Response;
-                        if (req.Path == new PathString("/challenge"))
+                        var reqPath = req.Path.Value.ToLower();
+                        if (reqPath == new PathString("/challenge"))
                         {
                             await context.ChallengeAsync();
                         }
-                        else if (req.Path == new PathString("/challenge-facebook"))
+                        else if (reqPath == new PathString("/challenge-" + FacebookDefaults.AuthenticationScheme.ToLower()))
                         {
                             await context.ChallengeAsync(FacebookDefaults.AuthenticationScheme);
                         }
-                        else if (req.Path == new PathString("/challenge-QQConnect"))
+                        else if (reqPath == new PathString("/challenge-" + QQConnectDefaults.AuthenticationScheme.ToLower()))
                         {
                             await context.ChallengeAsync(QQConnectDefaults.AuthenticationScheme);
                         }
-                        else if (req.Path == new PathString("/qq")) //http://demo.auth.myvas.com/qq
+                        else if (reqPath == new PathString("/qq")) //http://demo.auth.myvas.com/qq
                         {
                             await context.ChallengeAsync(QQConnectDefaults.AuthenticationScheme);
                         }
-                        else if (req.Path == new PathString("/tokens"))
+                        else if (reqPath == new PathString("/tokens"))
                         {
                             var result = await context.AuthenticateAsync(TestExtensions.CookieAuthenticationScheme);
                             var tokens = result.Properties.GetTokens();
-                            res.Describe(tokens);
+                            await res.DescribeAsync(tokens);
                         }
-                        else if (req.Path == new PathString("/me"))
+                        else if (reqPath == new PathString("/me"))
                         {
-                            res.Describe(context.User);
+                            await res.DescribeAsync(context.User);
                         }
-                        else if (req.Path == new PathString("/authenticate"))
+                        else if (reqPath == new PathString("/authenticate"))
                         {
                             var result = await context.AuthenticateAsync(TestExtensions.CookieAuthenticationScheme);
-                            res.Describe(result.Principal);
+                            await res.DescribeAsync(result.Principal);
                         }
-                        else if (req.Path == new PathString("/authenticate-QQConnect"))
+                        else if (reqPath == new PathString("/authenticate-" + QQConnectDefaults.AuthenticationScheme.ToLower()))
                         {
                             var result = await context.AuthenticateAsync(QQConnectDefaults.AuthenticationScheme);
-                            res.Describe(result?.Principal);
+                            await res.DescribeAsync(result?.Principal);
                         }
-                        else if (req.Path == new PathString("/authenticate-facebook"))
+                        else if (reqPath == new PathString("/authenticate-" + FacebookDefaults.AuthenticationScheme.ToLower()))
                         {
                             var result = await context.AuthenticateAsync(FacebookDefaults.AuthenticationScheme);
-                            res.Describe(result?.Principal);
+                            await res.DescribeAsync(result?.Principal);
                         }
-                        else if (req.Path == new PathString("/401"))
+                        else if (reqPath == new PathString("/401"))
                         {
                             res.StatusCode = (int)HttpStatusCode.Unauthorized;// 401;
                         }
-                        else if (req.Path == new PathString("/unauthorized"))
+                        else if (reqPath == new PathString("/unauthorized"))
                         {
                             // Simulate Authorization failure
                             var result = await context.AuthenticateAsync(QQConnectDefaults.AuthenticationScheme);
                             await context.ChallengeAsync(QQConnectDefaults.AuthenticationScheme);
                         }
-                        else if (req.Path == new PathString("/unauthorized-auto"))
+                        else if (reqPath == new PathString("/unauthorized-auto"))
                         {
                             var result = await context.AuthenticateAsync(QQConnectDefaults.AuthenticationScheme);
                             await context.ChallengeAsync(QQConnectDefaults.AuthenticationScheme);
                         }
-                        else if (req.Path == new PathString("/signin"))
+                        else if (reqPath == new PathString("/signin"))
                         {
                             await Assert.ThrowsAsync<InvalidOperationException>(() => context.SignInAsync(QQConnectDefaults.AuthenticationScheme, new ClaimsPrincipal()));
                         }
-                        else if (req.Path == new PathString("/signout"))
+                        else if (reqPath == new PathString("/signout"))
                         {
                             await Assert.ThrowsAsync<InvalidOperationException>(() => context.SignOutAsync(QQConnectDefaults.AuthenticationScheme));
                         }
-                        else if (req.Path == new PathString("/forbid"))
+                        else if (reqPath == new PathString("/forbid"))
                         {
                             await context.ForbidAsync(QQConnectDefaults.AuthenticationScheme);
                         }
