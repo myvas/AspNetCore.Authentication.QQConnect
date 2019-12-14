@@ -1,12 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFrameworks>netcoreapp3.1;netcoreapp3.0</TargetFrameworks>
     <PackageId>Myvas.AspNetCore.Authentication.QQConnect</PackageId>
     <AssemblyName>Myvas.AspNetCore.Authentication.QQConnect</AssemblyName>
     <RootNamespace>Myvas.AspNetCore.Authentication.QQConnect</RootNamespace>
     <Product>Myvas.AspNetCore.Authentication</Product>
-    <Version>3.1.0.1</Version>
+    <Version>3.1.0.2</Version>
     <IsShippingPackage>true</IsShippingPackage>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Authors>Myvas</Authors>
@@ -18,7 +18,11 @@
     <NoWarn>$(NoWarn);CS1591</NoWarn>
   </PropertyGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp3.1'">
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Twitter" Version="3.1.0" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp3.0'">
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.Twitter" Version="3.0.0" />
   </ItemGroup>
 </Project>
