@@ -1,12 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netcoreapp3.1;netcoreapp3.0</TargetFrameworks>
+    <TargetFrameworks>netcoreapp6.0;netcoreapp3.1;net5.0</TargetFrameworks>
     <PackageId>Myvas.AspNetCore.Authentication.QQConnect</PackageId>
     <AssemblyName>Myvas.AspNetCore.Authentication.QQConnect</AssemblyName>
     <RootNamespace>Myvas.AspNetCore.Authentication.QQConnect</RootNamespace>
     <Product>Myvas.AspNetCore.Authentication</Product>
-    <Version>3.1.0.2</Version>
+    <Version>6.0.2.20221</Version>
     <IsShippingPackage>true</IsShippingPackage>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Authors>Myvas</Authors>
@@ -18,11 +18,15 @@
     <NoWarn>$(NoWarn);CS1591</NoWarn>
   </PropertyGroup>
 
+	<ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp6.0'">
+		<PackageReference Include="Microsoft.AspNetCore.Authentication.Twitter" Version="6.0.0" />
+	</ItemGroup>
+	
   <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp3.1'">
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Twitter" Version="3.1.0" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp3.0'">
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.Twitter" Version="3.0.0" />
+  <ItemGroup Condition="'$(TargetFramework)' == 'net5.0'">
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.Twitter" Version="5.0.0" />
   </ItemGroup>
 </Project>
