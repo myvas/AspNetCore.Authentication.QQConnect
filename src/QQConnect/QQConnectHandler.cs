@@ -65,9 +65,9 @@ namespace Myvas.AspNetCore.Authentication.QQConnect.Internal
 
             // Get the UserInfo
             var userInfoPayload = await _api.GetUserInfo(Options.Backchannel, Options.UserInformationEndpoint, tokens.AccessToken, openid, clientId, Context.RequestAborted);
-            if(string.IsNullOrWhiteSpace(userInfoPayload.GetString("openid")))
+            if (string.IsNullOrWhiteSpace(userInfoPayload.GetString("openid")))
                 userInfoPayload = userInfoPayload.AppendElement("openid", openid);
-            if(string.IsNullOrWhiteSpace(userInfoPayload.GetString("client_id")))
+            if (string.IsNullOrWhiteSpace(userInfoPayload.GetString("client_id")))
                 userInfoPayload = userInfoPayload.AppendElement("client_id", clientId);
 
             var context = new OAuthCreatingTicketContext(new ClaimsPrincipal(identity), properties, Context, Scheme, Options, Backchannel, tokens, userInfoPayload.RootElement);//, ticket, Context, Options, Backchannel, tokens, userInfoPayload);
@@ -322,6 +322,45 @@ namespace Myvas.AspNetCore.Authentication.QQConnect.Internal
         {
             return Options.CorrelationCookie.Name + Scheme.Name + "." + CorrelationMarker + "." + correlationId;
         }
+        protected override bool ValidateCorrelationId(AuthenticationProperties properties)
+        {
+            //return base.ValidateCorrelationId(properties);
+
+            if (properties == null)
+            {
+                throw new ArgumentNullException(nameof(properties));
+            }
+
+            if (!properties.Items.TryGetValue(CorrelationProperty, out var correlationId))
+            {
+                Logger.LogWarning($"The CorrectionId not found in '{Options.CorrelationCookie.Name!}'");
+                return false;
+            }
+
+            properties.Items.Remove(CorrelationProperty);
+
+            var cookieName = BuildCorrelationCookieName(correlationId); //Options.CorrelationCookie.Name + correlationId;//
+
+            var correlationCookie = Request.Cookies[cookieName];
+            if (string.IsNullOrEmpty(correlationCookie))
+            {
+                Logger.LogWarning($"The CorrectionCookie not found in '{cookieName}'");
+                return false;
+            }
+
+            var cookieOptions = Options.CorrelationCookie.Build(Context, Clock.UtcNow);
+
+            Response.Cookies.Delete(cookieName, cookieOptions);
+
+            if (!string.Equals(correlationCookie, CorrelationMarker, StringComparison.Ordinal))
+            {
+                Logger.LogWarning($"Unexcepted CorrectionCookieValue: '{cookieName}'='{correlationCookie}'");
+                return false;
+            }
+
+            return true;
+        }
+
         #endregion
 
     }
