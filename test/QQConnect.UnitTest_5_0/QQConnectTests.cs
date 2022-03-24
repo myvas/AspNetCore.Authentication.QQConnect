@@ -1537,8 +1537,7 @@ namespace UnitTest
                 {
                     services.AddTransient<IClaimsTransformation, ClaimsTransformer>();
                     services.AddAuthentication(TestExtensions.CookieAuthenticationScheme)
-                        .AddCookie(TestExtensions.CookieAuthenticationScheme, o => 
-                            o.ForwardChallenge = QQConnectDefaults.AuthenticationScheme)
+                        .AddCookie(TestExtensions.CookieAuthenticationScheme, o => o.ForwardChallenge = QQConnectDefaults.AuthenticationScheme)
                         .AddQQConnect(configureOptions)
                         .AddTwitter(o =>
                         {

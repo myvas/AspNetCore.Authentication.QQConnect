@@ -1,33 +1,31 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<TargetFrameworks>netcoreapp6.0;netcoreapp3.1;net5.0</TargetFrameworks>
+		<TargetFrameworks>net6.0;net5.0;netcoreapp3.1</TargetFrameworks>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<!--<Nullable>enable</Nullable>-->
 		<PackageId>Myvas.AspNetCore.Authentication.QQConnect</PackageId>
 		<AssemblyName>Myvas.AspNetCore.Authentication.QQConnect</AssemblyName>
-		<RootNamespace>Myvas.AspNetCore.Authentication.QQConnect</RootNamespace>
-		<Product>Myvas.AspNetCore.Authentication</Product>
-		<Version>6.0.2.20222</Version>
 		<IsShippingPackage>true</IsShippingPackage>
 		<PackageLicenseExpression>MIT</PackageLicenseExpression>
-		<Authors>Myvas</Authors>
+		<PackageTags>Myvas, AspNetCore, Authentication, QQConnect, Tencent</PackageTags>
 		<Description>
 			An ASP.NET Core authentication middleware: QQConnect for https://connect.qq.com (腾讯QQ互联平台/QQ登录）
 
 			使用说明：须腾讯QQ互联平台（connect.qq.com）账号，用户通过点击“QQ登录”图标按钮，或使用手机QQ扫码登入网站。
 		</Description>
 		<PackageProjectUrl>https://github.com/myvas/AspNetCore.Authentication.QQConnect</PackageProjectUrl>
-		<PackageTags>Myvas,AspNetCore, Authentication, QQ Connect, Tencent</PackageTags>
-		<NoWarn>$(NoWarn);CS1591</NoWarn>
+		<Product>Myvas.AspNetCore.Authentication</Product>
 	</PropertyGroup>
 
-	<ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp6.0'">
+	<ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.Twitter" Version="6.0.0" />
-	</ItemGroup>
-
-	<ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp3.1'">
-		<PackageReference Include="Microsoft.AspNetCore.Authentication.Twitter" Version="3.1.0" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'net5.0'">
 		<PackageReference Include="Microsoft.AspNetCore.Authentication.Twitter" Version="5.0.0" />
+	</ItemGroup>
+	
+	<ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp3.1'">
+		<PackageReference Include="Microsoft.AspNetCore.Authentication.Twitter" Version="3.1.0" />
 	</ItemGroup>
 </Project>

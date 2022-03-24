@@ -1,4 +1,6 @@
 # Changelog
+## 6.0.3
+- Update to dotnet 6.0
 
 ## 2.1.504 (2019-03-09)
 - Update to dotnet-sdk-2.1.504

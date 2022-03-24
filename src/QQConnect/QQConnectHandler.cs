@@ -11,9 +11,11 @@ using System.Globalization;
 using System.Linq;
 using System.Net.Http;
 using System.Security.Claims;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
+using Base64UrlTextEncoder = Microsoft.AspNetCore.Authentication.Base64UrlTextEncoder;
 
 namespace Myvas.AspNetCore.Authentication.QQConnect.Internal
 {
@@ -51,31 +53,6 @@ namespace Myvas.AspNetCore.Authentication.QQConnect.Internal
         //protected const string AuthSchemeKey = ".AuthScheme";
 
         //protected static readonly RandomNumberGenerator CryptoRandom = RandomNumberGenerator.Create();
-
-        protected virtual async Task<AuthenticationTicket> CreateTicketAsync(
-            ClaimsIdentity identity,
-            AuthenticationProperties properties,
-            OAuthTokenResponse tokens)
-        {
-            // Get the openId and clientId
-            var payload = await _api.GetOpenId(Options.Backchannel, Options.OpenIdEndpoint, tokens.AccessToken, Context.RequestAborted);
-            //{“client_id”:”YOUR_APPID”,”openid”:”YOUR_OPENID”}
-            var clientId = payload.GetString("client_id");
-            var openid = payload.GetString("openid");
-
-            // Get the UserInfo
-            var userInfoPayload = await _api.GetUserInfo(Options.Backchannel, Options.UserInformationEndpoint, tokens.AccessToken, openid, clientId, Context.RequestAborted);
-            if (string.IsNullOrWhiteSpace(userInfoPayload.GetString("openid")))
-                userInfoPayload = userInfoPayload.AppendElement("openid", openid);
-            if (string.IsNullOrWhiteSpace(userInfoPayload.GetString("client_id")))
-                userInfoPayload = userInfoPayload.AppendElement("client_id", clientId);
-
-            var context = new OAuthCreatingTicketContext(new ClaimsPrincipal(identity), properties, Context, Scheme, Options, Backchannel, tokens, userInfoPayload.RootElement);//, ticket, Context, Options, Backchannel, tokens, userInfoPayload);
-            context.RunClaimActions();
-
-            await Events.CreatingTicket(context);
-            return new AuthenticationTicket(context.Principal, context.Properties, Scheme.Name);
-        }
 
         protected override async Task HandleChallengeAsync(AuthenticationProperties properties)
         {
@@ -126,21 +103,94 @@ namespace Myvas.AspNetCore.Authentication.QQConnect.Internal
 
             // Store protectedProperties in Cookie
             var protectedProperties = Options.StateDataFormat.Protect(properties);
-            var protectedPropertiesCookieName = BuildStateCookieName(correlationId);
             // Clean up all the deprecated cookies with pattern: "Options.CorrelationCookie.Name + Scheme.Name + "." + correlationId + "." + CorrelationMarker"
-            var deprecatedCookieNames = Context.Request.Cookies.Keys.Where(x => x.StartsWith(Options.CorrelationCookie.Name + Scheme.Name + "."));// && x.EndsWith("."+CorrelationMarker));
-            var cookieOptions = Options.CorrelationCookie.Build(Context);
-            deprecatedCookieNames.ToList().ForEach(x => Context.Response.Cookies.Delete(x));//, cookieOptions));
+            var deprecatedCookieNames = Context.Request.Cookies.Keys.Where(x => x.StartsWith(Options.CorrelationCookie.Name + Scheme.Name + "."));
+            deprecatedCookieNames.ToList().ForEach(x => Context.Response.Cookies.Delete(x));
             // Append a response cookie for state/properties
-            Context.Response.Cookies.Append(protectedPropertiesCookieName, protectedProperties);
-
+            var cookieOptions = Options.CorrelationCookie.Build(Context, Clock.UtcNow);
+            var protectedPropertiesCookieName = FormatStateCookieName(correlationId);
+            Context.Response.Cookies.Append(protectedPropertiesCookieName, protectedProperties, cookieOptions);
 
             var authorizationEndpoint = QueryHelpers.AddQueryString(Options.AuthorizationEndpoint, queryStrings);
             return authorizationEndpoint;
         }
 
-        protected virtual string FormatScope(IEnumerable<string> scopes)
-            => string.Join(",", scopes); // WeixinOpen comma separated
+        #region To satisfy too big protected properties, we should store it to cookie '.{CorrelationCookieName}.{SchemeName}.{CorrelationMarker}.{CorrelationId|state}'
+        protected virtual string FormatCorrelationCookieName(string correlationId)
+        {
+            return Options.CorrelationCookie.Name + Scheme.Name + "." + correlationId;
+        }
+
+        protected virtual string FormatStateCookieName(string correlationId)
+        {
+            return Options.CorrelationCookie.Name + Scheme.Name + "." + CorrelationMarker + "." + correlationId;
+        }
+
+        /// <inheritdoc/>
+        protected override void GenerateCorrelationId(AuthenticationProperties properties)
+        {
+            //base.GenerateCorrelationId(properties);
+
+            if (properties == null)
+            {
+                throw new ArgumentNullException(nameof(properties));
+            }
+
+            var bytes = new byte[32];
+            RandomNumberGenerator.Fill(bytes);
+            var correlationId = Base64UrlTextEncoder.Encode(bytes);
+
+            var cookieOptions = Options.CorrelationCookie.Build(Context, Clock.UtcNow);
+
+            properties.Items[CorrelationProperty] = correlationId;
+
+            //var cookieName = Options.CorrelationCookie.Name + correlationId;
+            var cookieName = FormatCorrelationCookieName(correlationId);
+
+            Response.Cookies.Append(cookieName, CorrelationMarker, cookieOptions);
+        }
+
+        /// <inheritdoc/>
+        protected override bool ValidateCorrelationId(AuthenticationProperties properties)
+        {
+            //return base.ValidateCorrelationId(properties);
+
+            if (properties == null)
+            {
+                throw new ArgumentNullException(nameof(properties));
+            }
+
+            if (!properties.Items.TryGetValue(CorrelationProperty, out var correlationId))
+            {
+                Logger.LogWarning($"The CorrectionId not found in '{Options.CorrelationCookie.Name!}'");
+                return false;
+            }
+
+            properties.Items.Remove(CorrelationProperty);
+
+            //var cookieName = Options.CorrelationCookie.Name + correlationId;
+            var cookieName = FormatCorrelationCookieName(correlationId);
+
+            var correlationCookie = Request.Cookies[cookieName];
+            if (string.IsNullOrEmpty(correlationCookie))
+            {
+                Logger.LogWarning($"The CorrectionCookie not found in '{cookieName}'");
+                return false;
+            }
+
+            var cookieOptions = Options.CorrelationCookie.Build(Context, Clock.UtcNow);
+
+            Response.Cookies.Delete(cookieName, cookieOptions);
+
+            if (!string.Equals(correlationCookie, CorrelationMarker, StringComparison.Ordinal))
+            {
+                Logger.LogWarning($"Unexcepted CorrectionCookieValue: '{cookieName}'='{correlationCookie}'");
+                return false;
+            }
+
+            return true;
+        }
+        #endregion
 
         #region Pick value from AuthenticationProperties
         private static string PickAuthenticationProperty<T>(
@@ -173,15 +223,14 @@ namespace Myvas.AspNetCore.Authentication.QQConnect.Internal
             => PickAuthenticationProperty(properties, name, x => x, defaultValue);
         #endregion
 
-        /// <summary>
-        /// 腾讯定义的接口方法与标准方法不一致，故须覆写此函数。
-        /// </summary>
-        /// <param name="code"></param>
-        /// <param name="redirectUri"></param>
-        /// <returns></returns>
-        protected virtual async Task<OAuthTokenResponse> ExchangeCodeAsync(string code, string redirectUri)
+        protected virtual string FormatScope(IEnumerable<string> scopes)
+            => string.Join(",", scopes); // OAuth2 3.3 space separated, but QQConnect not
+
+        protected virtual List<string> SplitScope(string scope)
         {
-            return await _api.GetToken(Options.Backchannel, Options.TokenEndpoint, Options.AppId, Options.AppKey, code, redirectUri, Context.RequestAborted);
+            var result = new List<string>();
+            if (string.IsNullOrWhiteSpace(scope)) return result;
+            return scope.Split(',').ToList();
         }
 
         protected override async Task<HandleRequestResult> HandleRemoteAuthenticateAsync()
@@ -213,28 +262,39 @@ namespace Myvas.AspNetCore.Authentication.QQConnect.Internal
                 return HandleRequestResult.Fail("The oauth state was missing.");
             }
 
-            var stateCookieName = BuildStateCookieName(state);
+            var stateCookieName = FormatStateCookieName(state);
             var protectedProperties = Request.Cookies[stateCookieName];
             if (string.IsNullOrEmpty(protectedProperties))
             {
+                Logger.LogError($"The protected properties not found in cookie '{stateCookieName}'");
                 return HandleRequestResult.Fail($"The oauth state cookie was missing: Cookie: {stateCookieName}");
             }
+            else
+            {
+                Logger.LogDebug($"The protected properties found in cookie '{stateCookieName}' with value '{protectedProperties}'");
+            }
+
             var properties = Options.StateDataFormat.Unprotect(protectedProperties);
+
             if (properties == null)
             {
                 return HandleRequestResult.Fail($"The oauth state cookie was invalid: Cookie: {stateCookieName}");
             }
+
             // OAuth2 10.12 CSRF
             if (!ValidateCorrelationId(properties))
             {
                 return HandleRequestResult.Fail("Correlation failed.", properties);
             }
-            //var cookieOptions = Options.CorrelationCookie.Build(Context, Clock.UtcNow);
-            Response.Cookies.Delete(stateCookieName);//, cookieOptions);
-            var correlationCookieName = BuildCorrelationCookieName(state);
-            Response.Cookies.Delete(correlationCookieName);//, cookieOptions);
+
+            // Cleanup state & correlation cookie
+            Response.Cookies.Delete(stateCookieName);
+            var correlationCookieName = FormatCorrelationCookieName(state);
+            Response.Cookies.Delete(correlationCookieName);
+            Logger.LogDebug($"Cookies deleted: '{stateCookieName}' and '{correlationCookieName}'");
 
             var code = query["code"];
+
             if (StringValues.IsNullOrEmpty(code))
             {
                 Logger.LogWarning("Code was not found.", properties);
@@ -243,12 +303,13 @@ namespace Myvas.AspNetCore.Authentication.QQConnect.Internal
 
             //var codeExchangeContext = new OAuthCodeExchangeContext(properties, code, BuildRedirectUri(Options.CallbackPath));
             //var tokens = await ExchangeCodeAsync(codeExchangeContext);
-            var tokens = await ExchangeCodeAsync(code, BuildRedirectUri(Options.CallbackPath));
+            using var tokens = await ExchangeCodeAsync(code, BuildRedirectUri(Options.CallbackPath));
 
             if (tokens.Error != null)
             {
                 return HandleRequestResult.Fail(tokens.Error, properties);
             }
+
             if (string.IsNullOrEmpty(tokens.AccessToken))
             {
                 return HandleRequestResult.Fail("Failed to retrieve access token.", properties);
@@ -312,56 +373,53 @@ namespace Myvas.AspNetCore.Authentication.QQConnect.Internal
             }
         }
 
-
-        #region To satisfy too big protected properties, we should store it to cookie '.{CorrelationCookieName}.{SchemeName}.{CorrelationMarker}.{CorrelationId|state}'
-        protected virtual string BuildCorrelationCookieName(string correlationId)
+        /// <summary>
+        /// 腾讯定义的接口方法与标准方法不一致，故须覆写此函数。
+        /// </summary>
+        /// <param name="code"></param>
+        /// <param name="redirectUri"></param>
+        /// <returns></returns>
+        protected virtual async Task<OAuthTokenResponse> ExchangeCodeAsync(string code, string redirectUri)
         {
-            return Options.CorrelationCookie.Name + Scheme.Name + "." + correlationId;
+            return await _api.GetToken(Options.Backchannel, Options.TokenEndpoint, Options.AppId, Options.AppKey, code, redirectUri, Context.RequestAborted);
         }
-        protected virtual string BuildStateCookieName(string correlationId)
-        {
-            return Options.CorrelationCookie.Name + Scheme.Name + "." + CorrelationMarker + "." + correlationId;
-        }
-        protected override bool ValidateCorrelationId(AuthenticationProperties properties)
-        {
-            //return base.ValidateCorrelationId(properties);
 
+        protected virtual async Task<AuthenticationTicket> CreateTicketAsync(
+            ClaimsIdentity identity,
+            AuthenticationProperties properties,
+            OAuthTokenResponse tokens)
+        {
+            if (identity == null)
+            {
+                throw new ArgumentNullException(nameof(identity));
+            }
             if (properties == null)
             {
                 throw new ArgumentNullException(nameof(properties));
             }
-
-            if (!properties.Items.TryGetValue(CorrelationProperty, out var correlationId))
+            if (tokens == null)
             {
-                Logger.LogWarning($"The CorrectionId not found in '{Options.CorrelationCookie.Name!}'");
-                return false;
+                throw new ArgumentNullException(nameof(tokens));
             }
 
-            properties.Items.Remove(CorrelationProperty);
+            // Get the openId and clientId
+            var payload = await _api.GetOpenId(Options.Backchannel, Options.OpenIdEndpoint, tokens.AccessToken, Context.RequestAborted);
+            //{“client_id”:”YOUR_APPID”,”openid”:”YOUR_OPENID”}
+            var clientId = payload.GetString("client_id");
+            var openid = payload.GetString("openid");
 
-            var cookieName = BuildCorrelationCookieName(correlationId); //Options.CorrelationCookie.Name + correlationId;//
+            // Get the UserInfo
+            var userInfoPayload = await _api.GetUserInfo(Options.Backchannel, Options.UserInformationEndpoint, tokens.AccessToken, openid, clientId, Context.RequestAborted);
+            if (string.IsNullOrWhiteSpace(userInfoPayload.GetString("openid")))
+                userInfoPayload = userInfoPayload.AppendElement("openid", openid);
+            if (string.IsNullOrWhiteSpace(userInfoPayload.GetString("client_id")))
+                userInfoPayload = userInfoPayload.AppendElement("client_id", clientId);
 
-            var correlationCookie = Request.Cookies[cookieName];
-            if (string.IsNullOrEmpty(correlationCookie))
-            {
-                Logger.LogWarning($"The CorrectionCookie not found in '{cookieName}'");
-                return false;
-            }
+            var context = new OAuthCreatingTicketContext(new ClaimsPrincipal(identity), properties, Context, Scheme, Options, Backchannel, tokens, userInfoPayload.RootElement);//, ticket, Context, Options, Backchannel, tokens, userInfoPayload);
+            context.RunClaimActions();
 
-            var cookieOptions = Options.CorrelationCookie.Build(Context, Clock.UtcNow);
-
-            Response.Cookies.Delete(cookieName, cookieOptions);
-
-            if (!string.Equals(correlationCookie, CorrelationMarker, StringComparison.Ordinal))
-            {
-                Logger.LogWarning($"Unexcepted CorrectionCookieValue: '{cookieName}'='{correlationCookie}'");
-                return false;
-            }
-
-            return true;
+            await Events.CreatingTicket(context);
+            return new AuthenticationTicket(context.Principal, context.Properties, Scheme.Name);
         }
-
-        #endregion
-
     }
 }

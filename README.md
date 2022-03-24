@@ -64,7 +64,7 @@ services.AddAuthentication()
         options.AppId = Configuration["WeixinOpen:AppId"];
         options.AppSecret = Configuration["WeixinOpen:AppSecret"];
 
-        options.CallbackPath = "signin-weixinopen"; //默认
+        options.CallbackPath = "/signin-weixinopen"; //默认
     };
 ```
 
@@ -105,7 +105,7 @@ services.AddAuthentication()
 ```
 
 # Dev
-* [.NET Core SDK 6.0](https://dotnet.microsoft.com/en-us/download/dotnet/6.0)
+* [.NET Core 6.0](https://dotnet.microsoft.com/en-us/download/dotnet/6.0)
 * [微信开发者工具](https://mp.weixin.qq.com/debug/wxadoc/dev/devtools/download.html)
 
 
