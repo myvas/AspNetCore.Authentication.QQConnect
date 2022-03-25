@@ -18,7 +18,13 @@ namespace Myvas.AspNetCore.Authentication
         /// </summary>
         public string DisplayStyle { get; set; }
 
+        /// <summary>
+        /// aka. client_id, consumer_key
+        /// </summary>
         public string AppId { get => ClientId; set => ClientId = value; }
+        /// <summary>
+        /// aka. client_secret, consumer_secret
+        /// </summary>
         public string AppKey { get => ClientSecret; set => ClientSecret = value; }
 
         public QQConnectOptions()
