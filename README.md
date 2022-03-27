@@ -1,34 +1,27 @@
 # Myvas.AspNetCore.Authentication Family
-## 1.QQConnect
-An ASP.NET Core authentication middleware: QQConnect for https://connect.qq.com (腾讯QQ互联平台/QQ登录）  
+* QQConnect: this repo
+* WeixinOpen: [Here](https://github.com/myvas/AspNetCore.Authentication.WeixinOpen)
+* WeixinAuth: [Here](https://github.com/myvas/AspNetCore.Authentication.WeixinAuth)
+
+# What's this?
+An ASP.NET Core authentication middleware for https://connect.qq.com (腾讯QQ互联平台/QQ登录）  
 腾讯QQ互联平台/QQ登录：须腾讯QQ互联平台（connect.qq.com）账号，用户通过点击“QQ登录”图标按钮，或使用手机QQ扫码登入网站。  
-* nuget: https://www.nuget.org/packages/Myvas.AspNetCore.Authentication.QQConnect  
-* github: https://github.com/myvas/AspNetCore.Authentication.QQConnect  
 
-## 2.WeixinOpen
-An ASP.NET Core authentication middleware: WeixinOpen for https://open.weixin.qq.com (微信开放平台/微信扫码登录)  
-微信开放平台/微信扫码登录：须微信开放平台(open.weixin.qq.com)账号，用户使用微信扫码并确认后登入网站。  
-* nuget: https://www.nuget.org/packages/Myvas.AspNetCore.Authentication.WeixinOpen  
-* github: https://github.com/myvas/AspNetCore.Authentication.WeixinOpen  
+* nuget: [Myvas.AspnetCore.Authentication.QQConnect](https://www.nuget.org/packages/Myvas.AspNetCore.Authentication.QQConnect) 
 
-## 3.WeixinAuth
-An ASP.NET Core authentication middleware: WeixinAuth for https://mp.weixin.qq.com （微信公众平台/网页授权登录）  
-微信公众平台/网页授权登录，须微信公众平台（mp.weixin.qq.com）已认证的服务号（或测试号），用户在微信客户端访问网站时自动登入网站。  
-* nuget: https://www.nuget.org/packages/Myvas.AspNetCore.Authentication.WeixinAuth
-* github: https://github.com/myvas/AspNetCore.Authentication.WeixinAuth
+# How to Use?
+## 1.Create account
+在腾讯QQ互联平台(https://connect.qq.com)上创建应用（网站应用，移动应用），并指定网站回调地址（例如：https://www.myvas.com/signin-qqconnect)，记下AppId和AppKey。  
 
-# How to Use
-## Configure
+## 2.Configure
 ```csharp
     app.UseAuthentication();
 ```
 
-## ConfigureServices
-1.QQConnect: 腾讯QQ互联平台(https://connect.qq.com)
-创建应用（网站应用，移动应用），并指定网站回调地址（例如：https://www.myvas.com/signin-qqconnect )，记下AppId和AppKey。  
-
+## 3.ConfigureServices
 ```csharp
 services.AddAuthentication()
+    // using Myvas.AspNetCore.Authentication;
     .AddQQConnect(options => 
     {
         options.AppId = Configuration["QQConnect:AppId"];
@@ -36,6 +29,7 @@ services.AddAuthentication()
 
         options.CallbackPath = "/signin-qqconnect"; //默认
 
+        // using Myvas.AspNetCore.Authentication.QQConnect;
         QQConnectScopes.TryAdd(options.Scope,
             QQConnectScopes.get_user_info,
             QQConnectScopes.list_album, //需要额外开通权限，暂未实现
@@ -44,41 +38,6 @@ services.AddAuthentication()
     };
 ```
 
-2.WeixinOpen: 微信开放平台(https://open.weixin.qq.com)
-创建网站应用，配置授权回调域（例如：auth.myvas.com )，记下AppId，获取AppSecret。  
-
-```csharp
-services.AddAuthentication()
-    .AddWeixinOpen(options => 
-    {
-        options.AppId = Configuration["WeixinOpen:AppId"];
-        options.AppSecret = Configuration["WeixinOpen:AppSecret"];
-
-        options.CallbackPath = "/signin-weixinopen"; //默认
-    };
-```
-
-3.WeixinAuth: 微信公众平台(https://mp.weixin.qq.com)
-
-（1）微信公众平台-测试账号/开发/开发者工具/公众平台测试号/...  
-- 开通功能：网页服务/网页授权获取用户基本信息。  
-- 设置好授权回调页面域名：例如，auth.myvas.com。  
-
-（2）微信公众平台-已认证服务号/开发/接口权限/...  
-- 开通功能：网页服务/网页授权获取用户基本信息。  
-- 设置好网页授权域名：例如，auth.myvas.com。  
-- 将文件MP_verify_xxxxxxxxx.txt上传至wwwroot目录下。  
-
-```csharp
-services.AddAuthentication()
-    .AddWeixinAuth(options => 
-    {
-        options.AppId = Configuration["WeixinAuth:AppId"];
-        options.AppSecret = Configuration["WeixinAuth:AppSecret"];
-
-        options.SilentMode = false; // default is true
-    };
-```
 
 ```
 说明：
@@ -95,7 +54,5 @@ services.AddAuthentication()
 * [微信开发者工具](https://mp.weixin.qq.com/debug/wxadoc/dev/devtools/download.html)
 
 # Demo Online
-* github: https://github.com/myvas/AspNetCore.Authentication.Demo
-* demo: https://demo.auth.myvas.com
-
-![alt https://demo.auth.myvas.com Weixin QrCode](http://mmbiz.qpic.cn/mmbiz_jpg/lPe5drS9euRQR1eCK5cGXaibHYL6vBR4pGLB34ju2hXCiaMQiayOU8w5GMfEH7WZsVNTnhLTpnzAC9xfdWuTT89OA/0)
+* Demo website: [Here](https://demo.auth.myvas.com)
+* Demo source code: [Here](https://github.com/myvas/AspNetCore.Authentication.Demo)
