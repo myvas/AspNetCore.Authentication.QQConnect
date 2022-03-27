@@ -5,8 +5,8 @@
 
 # What's this?
 An ASP.NET Core authentication middleware for https://connect.qq.com (腾讯QQ互联平台/QQ登录）  
-* 用户可通过点击“QQ登录”图标按钮一键登入网站，或使用手机QQ程序扫码登入网站，当然，也可以输入QQ账号密码登入网站。
 * 须腾讯QQ互联平台（connect.qq.com）账号。
+* 用户可通过点击“QQ登录”图标按钮一键登入网站，或使用手机QQ程序扫码登入网站，当然，也可以输入QQ账号密码登入网站。
 
 # How to Use?
 ## 0.Create account
@@ -29,9 +29,8 @@ services.AddAuthentication()
         options.AppId = Configuration["QQConnect:AppId"];
         options.AppKey = Configuration["QQConnect:AppKey"];
 
-        options.CallbackPath = "/signin-qqconnect"; //默认
+        options.CallbackPath = "/signin-qqconnect"; //default
 
-        // using Myvas.AspNetCore.Authentication.QQConnect;
         QQConnectScopes.TryAdd(options.Scope,
             QQConnectScopes.get_user_info,
             QQConnectScopes.list_album, //需要额外开通权限，暂未实现
