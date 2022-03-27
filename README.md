@@ -38,17 +38,6 @@ services.AddAuthentication()
     };
 ```
 
-
-```
-说明：
-
-(1)同一用户在同一微信公众号即使重复多次订阅/退订，其OpenId也不会改变。
-
-(2)同一用户在不同微信公众号中的OpenId是不一样的。
-
-(3)若同时运营了多个微信公众号，可以在微信开放平台上开通开发者账号，并在“管理中心/公众账号”中将这些公众号添加进去，就可以获取到同一用户在这些公众号中保持一致的UnionId。
-```
-
 # Dev
 * [.NET Core 6.0](https://dotnet.microsoft.com/en-us/download/dotnet/6.0)
 * [微信开发者工具](https://mp.weixin.qq.com/debug/wxadoc/dev/devtools/download.html)
