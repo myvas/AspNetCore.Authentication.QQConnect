@@ -13,7 +13,7 @@ An ASP.NET Core authentication middleware for https://connect.qq.com (腾讯QQ�
 在腾讯QQ互联平台(https://connect.qq.com)上创建应用（网站应用，移动应用），并指定网站回调地址（例如：https://www.myvas.com/signin-qqconnect)，记下AppId和AppKey。  
 
 ## 1.nuget
-[Myvas.AspnetCore.Authentication.QQConnect](https://www.nuget.org/packages/Myvas.AspNetCore.Authentication.QQConnect) 
+* [Myvas.AspnetCore.Authentication.QQConnect](https://www.nuget.org/packages/Myvas.AspNetCore.Authentication.QQConnect) 
 
 ## 2.Configure
 ```csharp
@@ -43,5 +43,4 @@ services.AddAuthentication()
 * [.NET Core 6.0](https://dotnet.microsoft.com/en-us/download/dotnet/6.0)
 
 # Demo Online
-* Demo website: [Here](https://demo.auth.myvas.com)
-* Demo source code: [Here](https://github.com/myvas/AspNetCore.Authentication.Demo)
+* [Here](https://demo.auth.myvas.com)
