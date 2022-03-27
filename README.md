@@ -1,12 +1,13 @@
 # Myvas.AspNetCore.Authentication Family
-* QQConnect: this repo
+* QQConnect: _this repo_
 * WeixinOpen: [Here](https://github.com/myvas/AspNetCore.Authentication.WeixinOpen)
 * WeixinAuth: [Here](https://github.com/myvas/AspNetCore.Authentication.WeixinAuth)
 
 # What's this?
 An ASP.NET Core authentication middleware for https://connect.qq.com (腾讯QQ互联平台/QQ登录）  
-* 腾讯QQ互联平台/QQ登录：须腾讯QQ互联平台（connect.qq.com）账号，用户通过点击“QQ登录”图标按钮，或使用手机QQ扫码登入网站。  
 * nuget: [Myvas.AspnetCore.Authentication.QQConnect](https://www.nuget.org/packages/Myvas.AspNetCore.Authentication.QQConnect) 
+* 用户可通过点击“QQ登录”图标按钮一键登入网站，或使用手机QQ程序扫码登入网站，当然，也可以输入QQ账号密码登入网站。
+* 须腾讯QQ互联平台（connect.qq.com）账号。
 
 # How to Use?
 ## 1.Create account
