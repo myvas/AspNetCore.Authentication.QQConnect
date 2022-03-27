@@ -40,7 +40,6 @@ services.AddAuthentication()
 
 # Dev
 * [.NET Core 6.0](https://dotnet.microsoft.com/en-us/download/dotnet/6.0)
-* [微信开发者工具](https://mp.weixin.qq.com/debug/wxadoc/dev/devtools/download.html)
 
 # Demo Online
 * Demo website: [Here](https://demo.auth.myvas.com)
