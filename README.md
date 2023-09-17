@@ -1,14 +1,13 @@
 # Myvas.AspNetCore.Authentication Family
+[![QQConnect](https://githubfast.com/myvas/AspNetCore.Authentication.QQConnect/actions/workflows/dotnet.yml/badge.svg)](https://github.com/myvas/AspNetCore.Authentication.QQConnect)
+[![WeixinOpen](https://githubfast.com/myvas/AspNetCore.Authentication.WeixinOpen/actions/workflows/dotnet.yml/badge.svg)](https://github.com/myvas/AspNetCore.Authentication.WeixinOpen)
+[![WeixinAuth](https://githubfast.com/myvas/AspNetCore.Authentication.WeixinAuth/actions/workflows/dotnet.yml/badge.svg)](https://github.com/myvas/AspNetCore.Authentication.WeixinAuth)
+
 * QQConnect: _this repo_
 * WeixinOpen: [Here](https://github.com/myvas/AspNetCore.Authentication.WeixinOpen)
 * WeixinAuth: [Here](https://github.com/myvas/AspNetCore.Authentication.WeixinAuth)
 
 # What's this?
-[![7.0](https://github.com/myvas/AspNetCore.Authentication.QQConnect/actions/workflows/main.yml/badge.svg?branch=7.0)](https://github.com/myvas/AspNetCore.Authentication.QQConnect/tree/7.0)
-[![6.0](https://github.com/myvas/AspNetCore.Authentication.QQConnect/actions/workflows/main.yml/badge.svg?branch=6.0)](https://github.com/myvas/AspNetCore.Authentication.QQConnect/tree/6.0)
-[![5.0](https://github.com/myvas/AspNetCore.Authentication.QQConnect/actions/workflows/main.yml/badge.svg?branch=5.0)](https://github.com/myvas/AspNetCore.Authentication.QQConnect/tree/6.0)
-[![3.1](https://github.com/myvas/AspNetCore.Authentication.QQConnect/actions/workflows/main.yml/badge.svg?branch=release/3.1)](https://github.com/myvas/AspNetCore.Authentication.QQConnect/tree/release/3.1)
-
 An ASP.NET Core authentication middleware for https://connect.qq.com (腾讯QQ互联平台/QQ登录）  
 * 须腾讯QQ互联平台（connect.qq.com）账号。
 * 用户可通过点击“QQ登录”图标按钮一键登入网站，或使用手机QQ程序扫码登入网站，当然，也可以输入QQ账号密码登入网站。
