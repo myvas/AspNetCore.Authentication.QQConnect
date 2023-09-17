@@ -27,6 +27,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "QQConnect.UnitTest_3_1", "t
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "QQConnect.UnitTest_5_0", "test\QQConnect.UnitTest_5_0\QQConnect.UnitTest_5_0.csproj", "{D52420DB-6B4C-442D-9D9D-DBF0D6D6A24F}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "QQConnect.UnitTest_6_0", "test\QQConnect.UnitTest_6_0\QQConnect.UnitTest_6_0.csproj", "{1B1A3045-E4FA-43A1-8ADA-96CD41FC060F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -49,6 +51,10 @@ Global
 		{D52420DB-6B4C-442D-9D9D-DBF0D6D6A24F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D52420DB-6B4C-442D-9D9D-DBF0D6D6A24F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D52420DB-6B4C-442D-9D9D-DBF0D6D6A24F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1B1A3045-E4FA-43A1-8ADA-96CD41FC060F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1B1A3045-E4FA-43A1-8ADA-96CD41FC060F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1B1A3045-E4FA-43A1-8ADA-96CD41FC060F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1B1A3045-E4FA-43A1-8ADA-96CD41FC060F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -58,6 +64,7 @@ Global
 		{DBC751DF-E475-4009-827F-82C42D07C95E} = {73FCFCF4-3A1C-4D4D-939A-9CABDC2341DC}
 		{0347C482-FBE7-4EA3-B971-8C09DC4C3042} = {73FCFCF4-3A1C-4D4D-939A-9CABDC2341DC}
 		{D52420DB-6B4C-442D-9D9D-DBF0D6D6A24F} = {73FCFCF4-3A1C-4D4D-939A-9CABDC2341DC}
+		{1B1A3045-E4FA-43A1-8ADA-96CD41FC060F} = {73FCFCF4-3A1C-4D4D-939A-9CABDC2341DC}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {2AEDFD1F-BBE1-4727-9978-2FB04DCE84AF}
