@@ -4,10 +4,10 @@
 * WeixinAuth: [Here](https://github.com/myvas/AspNetCore.Authentication.WeixinAuth)
 
 # What's this?
-[![7.0](.github/workflows/main.yml/badge.svg?branch=7.0)](https://github.com/myvas/AspNetCore.Authentication.QQConnect/tree/7.0)
-[![6.0](.github/workflows/main.yml/badge.svg?branch=6.0)](https://github.com/myvas/AspNetCore.Authentication.QQConnect/tree/6.0)
-[![5.0](.github/workflows/main.yml/badge.svg?branch=5.0)](https://github.com/myvas/AspNetCore.Authentication.QQConnect/tree/6.0)
-[![3.1](.github/workflows/main.yml/badge.svg?branch=3.1)](https://github.com/myvas/AspNetCore.Authentication.QQConnect/tree/release/3.1)
+[![7.0](https://github.com/github/docs/actions/workflows/main.yml/badge.svg?branch=7.0)](https://github.com/myvas/AspNetCore.Authentication.QQConnect/tree/7.0)
+[![6.0](https://github.com/github/docs/actions/workflows/main.yml/badge.svg?branch=6.0)](https://github.com/myvas/AspNetCore.Authentication.QQConnect/tree/6.0)
+[![5.0](https://github.com/github/docs/actions/workflows/main.yml/badge.svg?branch=5.0)](https://github.com/myvas/AspNetCore.Authentication.QQConnect/tree/6.0)
+[![3.1](https://github.com/github/docs/actions/workflows/main.yml/badge.svg?branch=release/3.1)](https://github.com/myvas/AspNetCore.Authentication.QQConnect/tree/release/3.1)
 
 An ASP.NET Core authentication middleware for https://connect.qq.com (腾讯QQ互联平台/QQ登录）  
 * 须腾讯QQ互联平台（connect.qq.com）账号。
