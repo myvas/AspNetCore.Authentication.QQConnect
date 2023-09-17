@@ -24,7 +24,7 @@ namespace Myvas.AspNetCore.Authentication.QQConnect.Internal
         protected HttpClient Backchannel => Options.Backchannel;
 
         /// <summary>
-        /// The handler calls methods on the events which give the application control at certain points where processing is occurring. 
+        /// The handler calls methods on the events which give the application control at certain points where processing is occurring.
         /// If it is not provided a default instance is supplied which does nothing when the methods are called.
         /// </summary>
         protected new OAuthEvents Events
@@ -46,8 +46,7 @@ namespace Myvas.AspNetCore.Authentication.QQConnect.Internal
             _api = api ?? throw new ArgumentNullException(nameof(api));
         }
 
-
-        //protected const string CorrelationPrefix = ".AspNetCore.Correlation."; 
+        //protected const string CorrelationPrefix = ".AspNetCore.Correlation.";
         protected const string CorrelationMarker = "N";
         protected const string CorrelationProperty = ".xsrf";
         //protected const string AuthSchemeKey = ".AuthScheme";
@@ -82,7 +81,6 @@ namespace Myvas.AspNetCore.Authentication.QQConnect.Internal
             }
             Logger.HandleChallenge(location, cookie);
         }
-
 
         protected virtual string BuildChallengeUrl(AuthenticationProperties properties, string redirectUri)
         {
@@ -199,7 +197,7 @@ namespace Myvas.AspNetCore.Authentication.QQConnect.Internal
             Func<T, string> formatter,
             T defaultValue)
         {
-            string value = null;
+            string value;
             var parameterValue = properties.GetParameter<T>(name);
             if (parameterValue != null)
             {
@@ -319,10 +317,11 @@ namespace Myvas.AspNetCore.Authentication.QQConnect.Internal
 
             if (Options.SaveTokens)
             {
-                var authTokens = new List<AuthenticationToken>();
-
-                authTokens.Add(new AuthenticationToken { Name = QQConnectTokenNames.access_token, Value = tokens.AccessToken });
-                if (!string.IsNullOrEmpty(tokens.RefreshToken))
+				var authTokens = new List<AuthenticationToken>
+				{
+					new AuthenticationToken { Name = QQConnectTokenNames.access_token, Value = tokens.AccessToken }
+				};
+				if (!string.IsNullOrEmpty(tokens.RefreshToken))
                 {
                     authTokens.Add(new AuthenticationToken { Name = QQConnectTokenNames.refresh_token, Value = tokens.RefreshToken });
                 }
@@ -344,23 +343,21 @@ namespace Myvas.AspNetCore.Authentication.QQConnect.Internal
                 }
                 if (!string.IsNullOrEmpty(tokens.ExpiresIn))
                 {
-                    int value;
-                    if (int.TryParse(tokens.ExpiresIn, NumberStyles.Integer, CultureInfo.InvariantCulture, out value))
-                    {
-                        // https://www.w3.org/TR/xmlschema-2/#dateTime
-                        // https://msdn.microsoft.com/en-us/library/az4se3k1(v=vs.110).aspx
-                        var expiresAt = Clock.UtcNow + TimeSpan.FromSeconds(value);
-                        authTokens.Add(new AuthenticationToken
-                        {
-                            Name = QQConnectTokenNames.expires_at,
-                            Value = expiresAt.ToString("o", CultureInfo.InvariantCulture)
-                        });
-                    }
-                }
+					if (int.TryParse(tokens.ExpiresIn, NumberStyles.Integer, CultureInfo.InvariantCulture, out int value))
+					{
+						// https://www.w3.org/TR/xmlschema-2/#dateTime
+						// https://msdn.microsoft.com/en-us/library/az4se3k1(v=vs.110).aspx
+						var expiresAt = Clock.UtcNow + TimeSpan.FromSeconds(value);
+						authTokens.Add(new AuthenticationToken
+						{
+							Name = QQConnectTokenNames.expires_at,
+							Value = expiresAt.ToString("o", CultureInfo.InvariantCulture)
+						});
+					}
+				}
 
                 properties.StoreTokens(authTokens); //ExternalLoginInfo.AuthenticationTokens
             }
-
 
             var ticket = await CreateTicketAsync(identity, properties, tokens);
             if (ticket != null)

@@ -90,7 +90,7 @@ namespace Myvas.AspNetCore.Authentication.QQConnect.Internal
         }
 
         /// <summary>
-        /// 
+        /// Get the OpenId.
         /// </summary>
         /// <param name="backchannel"></param>
         /// <param name="openIdEndpoint">OpenIdEndpoint</param>
