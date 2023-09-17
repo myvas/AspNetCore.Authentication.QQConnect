@@ -44,7 +44,9 @@ services.AddAuthentication()
 ```
 
 # Dev
-* [.NET Core 6.0](https://dotnet.microsoft.com/en-us/download/dotnet/6.0)
+* [Visual Studio 2022](https://visualstudio.microsoft.com)
+* [.NET 7.0, 6.0, 5.0, 3.1](https://dotnet.microsoft.com/en-us/download/dotnet)
+* [微信开发者工具](https://mp.weixin.qq.com/debug/wxadoc/dev/devtools/download.html)
 
 # Demo Online
 * [Here](https://demo.auth.myvas.com)
