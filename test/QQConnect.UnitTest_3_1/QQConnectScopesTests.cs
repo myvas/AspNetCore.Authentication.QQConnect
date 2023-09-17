@@ -39,7 +39,6 @@ namespace UnitTest
             Assert.Equal("1,2,3,4,5,6", test.ToString());
         }
 
-
         [Theory]
         [InlineData("1", "1")]
         [InlineData("1,2", "1", "2")]
@@ -68,7 +67,7 @@ namespace UnitTest
         {
             var test = new ScopeTester();
 
-            test.Scope.Add(origin.ToString());
+            test.Scope.Add(origin);
             Debug.WriteLine(test.ToString());
 
             QQConnectScopes.TryAdd(test.Scope, values);
