@@ -1,5 +1,9 @@
 # Changelog
 
+## 8.0.0 (2025-02-02)
+- Added target framework: net8.0
+- Added GitHub actions to automatically test and deploy.
+
 ## 7.0.11 (2023-09-15)
 - Update to dotnet 7.0.
 - Add new unit tests on dotnet 7.0.11.
