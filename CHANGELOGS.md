@@ -1,6 +1,6 @@
 # Changelog
 
-## 8.0.0 (2023-11-15)
+## 8.0.0 (2023-11-17)
 - Added target framework: net8.0
 - Added GitHub actions to automatically test and deploy.
 
