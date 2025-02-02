@@ -749,7 +749,7 @@ namespace UnitTest
 				{
 					var result = await context.AuthenticateAsync(QQConnectDefaults.AuthenticationScheme);
                     Assert.False(result.Succeeded);
-                    {//7.0, 8.0
+                    {//7.0, 8.0, 9.0
                         Assert.True(result.None);
                         Assert.Null(result.Failure);
                     }
