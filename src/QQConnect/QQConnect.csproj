@@ -1,12 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
-		<TargetFrameworks>net7.0;net6.0;net5.0;netcoreapp3.1</TargetFrameworks>
+		<TargetFrameworks>net8.0;net7.0;net6.0;net5.0;netcoreapp3.1</TargetFrameworks>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<!--<Nullable>enable</Nullable>-->
 		<PackageId>Myvas.AspNetCore.Authentication.QQConnect</PackageId>
 		<AssemblyName>Myvas.AspNetCore.Authentication.QQConnect</AssemblyName>
 		<IsShippingPackage>true</IsShippingPackage>
-		<PackageLicenseExpression>MIT</PackageLicenseExpression>
 		<PackageTags>Myvas, AspNetCore, Authentication, QQConnect, Tencent</PackageTags>
 		<Description>
 			An ASP.NET Core authentication middleware: QQConnect for https://connect.qq.com (腾讯QQ互联平台/QQ登录）
@@ -16,9 +15,15 @@
 		<PackageProjectUrl>https://github.com/myvas/AspNetCore.Authentication.QQConnect</PackageProjectUrl>
 		<Product>Myvas.AspNetCore.Authentication</Product>
 		<PackageReadmeFile>README.md</PackageReadmeFile>
+		<PackageLicenseFile>LICENSE.txt</PackageLicenseFile>
 	</PropertyGroup>
 	<ItemGroup>
 		<None Include="..\..\README.md" Pack="true" PackagePath="\" />
+		<None Include="..\..\LICENSE.txt" Pack="true" PackagePath="\" />
+	</ItemGroup>
+
+	<ItemGroup Condition="'$(TargetFramework)' == 'net8.0'">
+		<PackageReference Include="Microsoft.AspNetCore.Authentication.Twitter" Version="8.0.0" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'net7.0'">
