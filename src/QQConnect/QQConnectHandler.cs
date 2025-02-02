@@ -34,7 +34,12 @@ namespace Myvas.AspNetCore.Authentication.QQConnect.Internal
         }
 
         private readonly IQQConnectApi _api;
-
+#if NET8_0_OR_GREATER
+        /// <summary>
+        /// Initializes a new instance of <see cref="QQConnectHandler"/>.
+        /// </summary>
+        /// <inheritdoc />
+        [Obsolete("ISystemClock is obsolete, use TimeProvider on AuthenticationSchemeOptions instead.")]
         public QQConnectHandler(
             IQQConnectApi api,
             IOptionsMonitor<QQConnectOptions> options,
@@ -45,7 +50,28 @@ namespace Myvas.AspNetCore.Authentication.QQConnect.Internal
         {
             _api = api ?? throw new ArgumentNullException(nameof(api));
         }
-
+        
+        public QQConnectHandler(
+            IQQConnectApi api,
+            IOptionsMonitor<QQConnectOptions> options,
+            ILoggerFactory loggerFactory,
+            UrlEncoder encoder)
+            : base(options, loggerFactory, encoder)
+        {
+            _api = api ?? throw new ArgumentNullException(nameof(api));
+        }
+#else
+        public QQConnectHandler(
+            IQQConnectApi api,
+            IOptionsMonitor<QQConnectOptions> options,
+            ILoggerFactory loggerFactory,
+            UrlEncoder encoder,
+            ISystemClock clock)
+            : base(options, loggerFactory, encoder, clock)
+        {
+            _api = api ?? throw new ArgumentNullException(nameof(api));
+        }
+#endif
         //protected const string CorrelationPrefix = ".AspNetCore.Correlation.";
         protected const string CorrelationMarker = "N";
         protected const string CorrelationProperty = ".xsrf";
@@ -105,7 +131,11 @@ namespace Myvas.AspNetCore.Authentication.QQConnect.Internal
             var deprecatedCookieNames = Context.Request.Cookies.Keys.Where(x => x.StartsWith(Options.CorrelationCookie.Name + Scheme.Name + "."));
             deprecatedCookieNames.ToList().ForEach(x => Context.Response.Cookies.Delete(x));
             // Append a response cookie for state/properties
+#if NET8_0_OR_GREATER
+            var cookieOptions = Options.CorrelationCookie.Build(Context, TimeProvider.GetUtcNow());
+#else
             var cookieOptions = Options.CorrelationCookie.Build(Context, Clock.UtcNow);
+#endif
             var protectedPropertiesCookieName = FormatStateCookieName(correlationId);
             Context.Response.Cookies.Append(protectedPropertiesCookieName, protectedProperties, cookieOptions);
 
@@ -137,8 +167,11 @@ namespace Myvas.AspNetCore.Authentication.QQConnect.Internal
             var bytes = new byte[32];
             RandomNumberGenerator.Fill(bytes);
             var correlationId = Base64UrlTextEncoder.Encode(bytes);
-
+#if NET8_0_OR_GREATER
+            var cookieOptions = Options.CorrelationCookie.Build(Context, TimeProvider.GetUtcNow());
+#else
             var cookieOptions = Options.CorrelationCookie.Build(Context, Clock.UtcNow);
+#endif
 
             properties.Items[CorrelationProperty] = correlationId;
 
@@ -175,8 +208,11 @@ namespace Myvas.AspNetCore.Authentication.QQConnect.Internal
                 Logger.LogWarning($"The CorrectionCookie not found in '{cookieName}'");
                 return false;
             }
-
+#if NET8_0_OR_GREATER
+            var cookieOptions = Options.CorrelationCookie.Build(Context, TimeProvider.GetUtcNow());
+#else
             var cookieOptions = Options.CorrelationCookie.Build(Context, Clock.UtcNow);
+#endif
 
             Response.Cookies.Delete(cookieName, cookieOptions);
 
@@ -295,7 +331,7 @@ namespace Myvas.AspNetCore.Authentication.QQConnect.Internal
 
             if (StringValues.IsNullOrEmpty(code))
             {
-                Logger.LogWarning("Code was not found.", properties);
+                Logger.LogWarning("Code was not found.");
                 return HandleRequestResult.Fail("Code was not found.", properties);
             }
 
@@ -317,11 +353,11 @@ namespace Myvas.AspNetCore.Authentication.QQConnect.Internal
 
             if (Options.SaveTokens)
             {
-				var authTokens = new List<AuthenticationToken>
-				{
-					new AuthenticationToken { Name = QQConnectTokenNames.access_token, Value = tokens.AccessToken }
-				};
-				if (!string.IsNullOrEmpty(tokens.RefreshToken))
+                var authTokens = new List<AuthenticationToken>
+                {
+                    new AuthenticationToken { Name = QQConnectTokenNames.access_token, Value = tokens.AccessToken }
+                };
+                if (!string.IsNullOrEmpty(tokens.RefreshToken))
                 {
                     authTokens.Add(new AuthenticationToken { Name = QQConnectTokenNames.refresh_token, Value = tokens.RefreshToken });
                 }
@@ -343,18 +379,22 @@ namespace Myvas.AspNetCore.Authentication.QQConnect.Internal
                 }
                 if (!string.IsNullOrEmpty(tokens.ExpiresIn))
                 {
-					if (int.TryParse(tokens.ExpiresIn, NumberStyles.Integer, CultureInfo.InvariantCulture, out int value))
-					{
-						// https://www.w3.org/TR/xmlschema-2/#dateTime
-						// https://msdn.microsoft.com/en-us/library/az4se3k1(v=vs.110).aspx
-						var expiresAt = Clock.UtcNow + TimeSpan.FromSeconds(value);
-						authTokens.Add(new AuthenticationToken
-						{
-							Name = QQConnectTokenNames.expires_at,
-							Value = expiresAt.ToString("o", CultureInfo.InvariantCulture)
-						});
-					}
-				}
+                    if (int.TryParse(tokens.ExpiresIn, NumberStyles.Integer, CultureInfo.InvariantCulture, out int value))
+                    {
+                        // https://www.w3.org/TR/xmlschema-2/#dateTime
+                        // https://msdn.microsoft.com/en-us/library/az4se3k1(v=vs.110).aspx
+#if NET8_0_OR_GREATER
+                        var expiresAt = TimeProvider.GetUtcNow() + TimeSpan.FromSeconds(value);
+#else
+                        var expiresAt = Clock.UtcNow + TimeSpan.FromSeconds(value);
+#endif
+                        authTokens.Add(new AuthenticationToken
+                        {
+                            Name = QQConnectTokenNames.expires_at,
+                            Value = expiresAt.ToString("o", CultureInfo.InvariantCulture)
+                        });
+                    }
+                }
 
                 properties.StoreTokens(authTokens); //ExternalLoginInfo.AuthenticationTokens
             }

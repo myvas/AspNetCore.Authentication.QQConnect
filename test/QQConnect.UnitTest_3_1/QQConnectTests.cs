@@ -748,7 +748,12 @@ namespace UnitTest
                 if (req.Path == new PathString("/auth"))
                 {
                     var result = await context.AuthenticateAsync(QQConnectDefaults.AuthenticationScheme);
-                    Assert.NotNull(result.Failure);
+                    Assert.False(result.Succeeded);
+                    {//3.1
+                        Assert.False(result.None);
+                        Assert.NotNull(result.Failure);
+                        Assert.Equal("Not authenticated", result.Failure.Message);
+                    }
                 }
             });
             var transaction = await server.SendAsync("https://example.com/auth");
