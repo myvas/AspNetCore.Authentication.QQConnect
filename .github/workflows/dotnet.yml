@@ -34,14 +34,6 @@ jobs:
       run: |
         ls ${{ github.workspace }}
         
-    - name: Setup dotnet 3.1.x
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: '3.1.x'
-    - name: Setup dotnet 5.0.x
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: '5.0.x'
     - name: Setup dotnet 6.0.x
       uses: actions/setup-dotnet@v4
       with:
