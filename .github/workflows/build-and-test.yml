@@ -43,7 +43,7 @@ jobs:
           ls -la ${{ github.workspace }}
     
       - name: Setup dotnet
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: ${{ inputs.dotnet-version }}
           global-json-file: global.json
